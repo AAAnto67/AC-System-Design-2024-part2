@@ -16,7 +16,6 @@ span = 27.5
 engine_angle = ma.radians(30) 
 engine_hor_dist = 4.8
 engine_vert_dist = 1.7
-engine_thrust = 78500 
 
 #chord length is defined as c(y) = ay + b, with a = chord_a, and b = chord_b
 
