@@ -40,7 +40,7 @@ def TorsionalConstant(front_spar_location,rear_spar_location,spar_thickness,top_
     J = 4 * enclosed_area**2 / line_integral
     return(J)
 
-def Torsion(data,velocity,density,resolution):
+def Torsion(data,velocity,density,engine_thrust,resolution):
     
     #the torsion will be calculated in small quantaties based on the moment coefficient in the given location.
     #the torsion of all the parts will then be added together.
@@ -69,19 +69,19 @@ def Torsion(data,velocity,density,resolution):
 
     return(x,Torsion_y)
 
-xtab = Torsion('a.txt',86.10,0.3,0.1)[0]
-ytab = Torsion('a.txt',86.10,0.3,0.1)[1]
+#xtab = Torsion('a.txt',86.10,0.3,78500,0.1)[0]
+#ytab = Torsion('a.txt',86.10,0.3,78500,0.1)[1]
 
-def deformation(data,velocity,density,resolution,front_spar_location,rear_spar_location,spar_thickness,top_thickness):
+def deformation(data,velocity,density,engine_thrust,resolution,front_spar_location,rear_spar_location,spar_thickness,top_thickness):
     G = 28 * 10**9
-    ytab = Torsion(data,velocity,density,resolution)[0]
-    torsion = Torsion(data,velocity,density,resolution)[1]
+    ytab = Torsion(data,velocity,density,engine_thrust,resolution)[0]
+    torsion = Torsion(data,velocity,density,engine_thrust,resolution)[1]
 
     diffdeformation = []
     for i in range(len(ytab)):
         diffdeformation.append(torsion[i] / G / TorsionalConstant(front_spar_location,rear_spar_location,spar_thickness,top_thickness,ytab[i]))
 
-    print(len(diffdeformation))
+    #print(len(diffdeformation))
 
     totaldeformation = []
     for i in range(len(ytab)):
