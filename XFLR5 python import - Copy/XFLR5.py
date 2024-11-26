@@ -91,6 +91,7 @@ def cl(alpha, y):
     cld = cl0(y) + ((CL(alpha) - CL0) / (CL10 - CL0)) * cl10(y) - cl0(y) 
     return(cld) 
 
+#eeeeeeeeeeeeeee
 
 #Results of this python code:
 #   section:
