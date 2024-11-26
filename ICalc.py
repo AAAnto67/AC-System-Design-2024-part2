@@ -1,12 +1,19 @@
 import numpy as np
 from tkinter import *
 import math as m
+import StiffnessCalculations
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import random
+
 root = Tk()
 
 Offset = 50
 RootChord = 4.26
+HalfWingSpan = StiffnessCalculations.span/2
 ScalingFactor = 1000
 
+resolutionTom = 0.05
 
 f = open("AirfoilCharacteristics.txt", "r")
 f.readline()
@@ -107,15 +114,24 @@ def CalcI(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNum
                                       10 + CanvasDimensions[0]*0.5, -FinalCentroid*100 + CanvasDimensions[1]*0.5)
     FinalI = CalcTruei(ListOfCoord)[0] - CalcTruei(ListOfSecondCoord)[0] + StringersTotalI
 
-    #TomsThings = TomsFunction((ListOfCoord[1][0] - ListOfCoord[0][0]), (ListOfCoord[0][1] - ListOfCoord[3][1]), (ListOfCoord[1][1] - ListOfCoord[0][1]), (ListOfCoord[1][1] - ListOfCoord[2][1]), HThickness, VThickness)
-    
-    print(ListOfCoord[1][0] - ListOfCoord[0][0])
-    print(ListOfCoord[0][1] - ListOfCoord[3][1])
-    print(ListOfCoord[1][1] - ListOfCoord[0][1])
-    print(ListOfCoord[1][1] - ListOfCoord[2][1])
-
     Ixx.delete("1.0", END)
     Ixx.insert(END, FinalI)
+
+    y = StiffnessCalculations.deformation('a.txt',86.10,0.3,resolutionTom,FrontSparX/RootChord,BackSparX/RootChord,HThickness,VThickness) #data, velocity, density, resolution, frontspar (ratio), backspar (ratio), spar thickness, top thickness
+    XList = [round(resolutionTom * i, 3) for i in range(len(y[0]))]
+    print(y[0])
+    print(XList)
+    print(len(y[0]), len(XList))
+    ax.clear()
+    ax.plot(XList, y[0])
+    TomsCanvas.draw()
+
+    ax2.clear()
+    ax2.plot(XList, y[1])
+    TomsCanvas2.draw()
+
+    TorqueDeform.delete("1.0", END)
+    TorqueDeform.insert(END, y[2])
 
 CanvasDimensions = [1100, 200]
 FinalI = 0
@@ -197,10 +213,17 @@ Ixx = Text(OutputHolder, height = 0.5, width = 10, bg = "light cyan", font =1 , 
 Label(OutputHolder, text="Ixx", bg="white").grid(row = 0, column = 0, sticky = W, padx = 0)
 Ixx.grid(row=0, column=1, sticky=W)
 
-J = Text(OutputHolder, height = 0.5, width = 10, bg = "light cyan", font =1 , padx=10, pady=5)
-Label(OutputHolder, text="J", bg="white").grid(row = 1, column = 0, sticky = W, padx = 0)
-J.grid(row=1, column=1, sticky=W)
+TorqueDeform = Text(OutputHolder, height = 0.5, width = 10, bg = "light cyan", font =1 , padx=10, pady=5)
+Label(OutputHolder, text="Tom's Deformation in Degrees", bg="white").grid(row = 1, column = 0, sticky = W, padx = 0)
+TorqueDeform.grid(row=1, column=1, sticky=W)
 
+fig, ax = plt.subplots()
+TomsCanvas = FigureCanvasTkAgg(fig, master=root)
+TomsCanvas.get_tk_widget().grid(row = 2, column = 0, sticky = W, padx = 0)
+
+fig2, ax2 = plt.subplots()
+TomsCanvas2 = FigureCanvasTkAgg(fig2, master=root)
+TomsCanvas2.get_tk_widget().grid(row = 3, column = 0, sticky = W, padx = 0)
 
 C.grid(row = 0, column = 0, sticky = W, padx = 2)
 VariableHolder.grid(row = 0, column = 0, sticky = W, padx = 0)
