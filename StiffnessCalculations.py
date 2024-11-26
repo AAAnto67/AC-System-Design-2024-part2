@@ -78,7 +78,7 @@ def deformation(data,velocity,density,engine_thrust,resolution,front_spar_locati
 
     diffdeformation = []
     for i in range(len(ytab)):
-        diffdeformation.append(torsion[i] / G / TorsionalConstant(front_spar_location,rear_spar_location,spar_thickness,top_thickness,ytab[i]))
+        diffdeformation.append(torsion[i] / G / TorsionalConstant(front_spar_location,rear_spar_location,spar_thickness,top_thickness,ytab[i]) * 180 / 3.1415)
 
     #print(len(diffdeformation))
 
@@ -91,7 +91,7 @@ def deformation(data,velocity,density,engine_thrust,resolution,front_spar_locati
             j += 1
         totaldeformation.append(localdeformation)
     
-    tipdeformation = totaldeformation[-1] * 180 / 3.1415
+    tipdeformation = totaldeformation[-1] 
 
     return(diffdeformation,totaldeformation,tipdeformation)
 
