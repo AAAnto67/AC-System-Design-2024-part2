@@ -45,6 +45,7 @@ for n in range(len(y_list)):
         moment += engine_weight * (y_engine - y) - trust * r_engine * np.sin(engine_angle)
 
     M_list.append(moment)
+    return(displacement_list, V_list)
 
     
 #plt.plot(y_list, V_list)
