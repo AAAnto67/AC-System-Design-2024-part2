@@ -88,7 +88,7 @@ def CL(alpha):
 
 #Define a function that calculates the section cl for any angle of attack and position
 def cl(alpha, y):
-    cld = cl0(y) + ((CL(alpha) - CL0) / (CL10 - CL0)) * cl10(y) - cl0(y) 
+    cld = cl0(y) + ((CL(alpha) - CL0) / (CL10 - CL0)) * (cl10(y) - cl0(y)) 
     return(cld) 
 
 
@@ -103,7 +103,7 @@ def cl(alpha, y):
 #   wing:
 #       CL(alpha)    -----> wing    CL at alpha
 #       CL0          -----> wing    CL at alpha = 0
-#       CL10         -----> wing    CL at alpha = 10
+#       CL10         -----> wing    CL at alpha = 10    
 
 
           
