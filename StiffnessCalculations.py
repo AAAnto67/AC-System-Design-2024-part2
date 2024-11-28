@@ -13,7 +13,7 @@ root_chord = 4.18
 span = 27.5
 
 #the engine will create a point torque on the wing
-engine_angle = ma.radians(30) 
+engine_angle = ma.radians(29.4) 
 engine_hor_dist = 4.8
 engine_vert_dist = 1.7
 
@@ -52,7 +52,7 @@ def Torsion(data,velocity,density,engine_thrust,resolution):
     while i < span/2:
         LocalTorsion = 0
         if i <= engine_hor_dist:
-            LocalTorsion += engine_thrust * engine_vert_dist * ma.sin(engine_angle)
+            LocalTorsion += engine_thrust * engine_vert_dist * ma.cos(engine_angle)
         j = i
         while j < span/2:
             cm = cmy(j+resolution/2)
