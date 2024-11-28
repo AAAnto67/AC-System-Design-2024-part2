@@ -47,8 +47,9 @@ for n in range(len(y_list)):
     M_list.append(moment)
 
     
-plt.plot(y_list, V_list)
-plt.show()
+#plt.plot(y_list, V_list)
+#plt.show()
+
 
 
 
