@@ -7,11 +7,14 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
 
 root = Tk()
+root.config(bg="gray")
 
 Offset = 50
 RootChord = 4.26
 HalfWingSpan = StiffnessCalculations.span/2
-ScalingFactor = 1000
+ScalingFactor = 2000
+CanvasDimensions = [2200, 400]
+
 
 resolutionTom = 0.05
 
@@ -117,23 +120,30 @@ def CalcI(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNum
     Ixx.delete("1.0", END)
     Ixx.insert(END, FinalI)
 
-    y = StiffnessCalculations.deformation('a.txt',86.10,0.3,resolutionTom,FrontSparX/RootChord,BackSparX/RootChord,HThickness,VThickness) #data, velocity, density, resolution, frontspar (ratio), backspar (ratio), spar thickness, top thickness
-    XList = [round(resolutionTom * i, 3) for i in range(len(y[0]))]
-    print(y[0])
-    print(XList)
-    print(len(y[0]), len(XList))
+    TorqueList = StiffnessCalculations.deformation('a.txt',86.10,0.3, 78500,resolutionTom,FrontSparX/RootChord,BackSparX/RootChord,HThickness,VThickness) #data, velocity, density, engine thrust, resolution, frontspar (ratio), backspar (ratio), spar thickness, top thickness
+    DeformList = []
+    
+    XList = [round(resolutionTom * i, 3) for i in range(len(TorqueList[0]))]
+    
     ax.clear()
-    ax.plot(XList, y[0])
+    ax.plot(XList, TorqueList[0])
     TomsCanvas.draw()
 
     ax2.clear()
-    ax2.plot(XList, y[1])
+    ax2.plot(XList, TorqueList[1])
     TomsCanvas2.draw()
 
-    TorqueDeform.delete("1.0", END)
-    TorqueDeform.insert(END, y[2])
+    #ax3.clear()
+    #ax3.plot(XList, DeformList[0])
+    #ShearCanvas.draw()
 
-CanvasDimensions = [1100, 200]
+    #ax4.clear()
+    #ax4.plot(XList, DeformList[1])
+    #DeformCanvas.draw()
+
+    TorqueDeform.delete("1.0", END)
+    TorqueDeform.insert(END, TorqueList[2])
+
 FinalI = 0
 C = Canvas(root, bg="white", height=CanvasDimensions[1], width=CanvasDimensions[0])
 
@@ -166,68 +176,77 @@ FinalYCentroid = C.create_line(0, 0, 0, 0,fill='purple')
 #List of Inputs in the GUI
 
 BottomHolder = Frame(root, bg = "gray", padx = 10, pady = 5)
-
+GraphsHolder = Frame(root, bg = "gray", padx = 10, pady = 5)
 VariableHolder = Frame(BottomHolder, bg = "gray", padx = 10, pady = 5)
+OutputHolder = Frame(BottomHolder, bg = "gray", padx = 10, pady = 5)
 
-Label(VariableHolder, text="Front Spar X pos (m)", bg="white").grid(row = 0, column = 0, sticky = W, padx = 2)
-FrontSparXINPUT = Entry(VariableHolder, bd=3)
+Label(VariableHolder, text="Front Spar X pos (m)", bg="white", font = 2).grid(row = 0, column = 0, sticky = W, padx = 2)
+FrontSparXINPUT = Entry(VariableHolder, bd=3, font=2)
 FrontSparXINPUT.insert(0, 1)
 FrontSparXINPUT.grid(row = 0, column = 1, sticky = W, padx = 2)
 
-Label(VariableHolder, text="Back Spar X pos (m)", bg="white").grid(row = 3, column = 0, sticky = W, padx = 2)
-BackSparXINPUT = Entry(VariableHolder, bd=3)
+Label(VariableHolder, text="Back Spar X pos (m)", bg="white", font = 2).grid(row = 3, column = 0, sticky = W, padx = 2)
+BackSparXINPUT = Entry(VariableHolder, bd=3, font=2)
 BackSparXINPUT.insert(0, 2)
 BackSparXINPUT.grid(row = 3, column = 1, sticky = W, padx = 2)
 
-Label(VariableHolder, text="Horizontal thickness (mm)", bg="white").grid(row = 4, column = 0, sticky = W, padx = 2)
-HThicknessINPUT = Entry(VariableHolder, bd=3)
+Label(VariableHolder, text="Horizontal thickness (mm)", bg="white", font = 2).grid(row = 4, column = 0, sticky = W, padx = 2)
+HThicknessINPUT = Entry(VariableHolder, bd=3, font=2)
 HThicknessINPUT.insert(0, 2)
 HThicknessINPUT.grid(row = 4, column = 1, sticky = W, padx = 2)
 
-Label(VariableHolder, text="Vertical thickness (mm)", bg="white").grid(row = 5, column = 0, sticky = W, padx = 2)
-VThicknessINPUT = Entry(VariableHolder, bd=3)
+Label(VariableHolder, text="Vertical thickness (mm)", bg="white", font = 2).grid(row = 5, column = 0, sticky = W, padx = 2)
+VThicknessINPUT = Entry(VariableHolder, bd=3, font=2)
 VThicknessINPUT.insert(0, 2)
 VThicknessINPUT.grid(row = 5, column = 1, sticky = W, padx = 2)
 
-Label(VariableHolder, text="Number of Top Stringers", bg="white").grid(row = 6, column = 0, sticky = W, padx = 2)
-stringNumTopINPUT = Entry(VariableHolder, bd=3)
+Label(VariableHolder, text="Number of Top Stringers", bg="white", font = 2).grid(row = 6, column = 0, sticky = W, padx = 2)
+stringNumTopINPUT = Entry(VariableHolder, bd=3, font=2)
 stringNumTopINPUT.insert(0, 5)
 stringNumTopINPUT.grid(row = 6, column = 1, sticky = W, padx = 2)
 
-Label(VariableHolder, text="Number of Bottom Stringers", bg="white").grid(row = 7, column = 0, sticky = W, padx = 2)
-stringNumBotINPUT = Entry(VariableHolder, bd=3)
+Label(VariableHolder, text="Number of Bottom Stringers", bg="white", font = 2).grid(row = 7, column = 0, sticky = W, padx = 2)
+stringNumBotINPUT = Entry(VariableHolder, bd=3, font=2)
 stringNumBotINPUT.insert(0, 6)
 stringNumBotINPUT.grid(row = 7, column = 1, sticky = W, padx = 2)
 
-Label(VariableHolder, text="Stringer Area (m2)", bg="white").grid(row = 8, column = 0, sticky = W, padx = 2)
-stringAreaINPUT = Entry(VariableHolder, bd=3)
+Label(VariableHolder, text="Stringer Area (m2)", bg="white", font = 2).grid(row = 8, column = 0, sticky = W, padx = 2)
+stringAreaINPUT = Entry(VariableHolder, bd=3, font=2)
 stringAreaINPUT.insert(0, 0.002)
 stringAreaINPUT.grid(row = 8, column = 1, sticky = W, padx = 2)
 
-ComputeButton = Button(VariableHolder, text="Compute", bg="red", command=lambda:CalcI(float(FrontSparXINPUT.get()), float(BackSparXINPUT.get()), float(HThicknessINPUT.get()), float(VThicknessINPUT.get()), int(stringNumTopINPUT.get()), int(stringNumBotINPUT.get()), float(stringAreaINPUT.get())))
-ComputeButton.grid(row = 9, column = 0, sticky = W, padx = 20)
+ComputeButton = Button(VariableHolder, text="Compute", bg="red", font = 2, command=lambda:CalcI(float(FrontSparXINPUT.get()), float(BackSparXINPUT.get()), float(HThicknessINPUT.get()), float(VThicknessINPUT.get()), int(stringNumTopINPUT.get()), int(stringNumBotINPUT.get()), float(stringAreaINPUT.get())))
+ComputeButton.grid(row = 0, column = 2, sticky = W, padx = 20)
 
-OutputHolder = Frame(BottomHolder, bg = "gray", padx = 10, pady = 5)
-
-Ixx = Text(OutputHolder, height = 0.5, width = 10, bg = "light cyan", font =1 , padx=10, pady=5)
-Label(OutputHolder, text="Ixx", bg="white").grid(row = 0, column = 0, sticky = W, padx = 0)
+Ixx = Text(OutputHolder, height = 0.5, width = 10, bg = "light cyan", font =2 , padx=10, pady=5)
+Label(OutputHolder, text="Ixx", bg="white", font=2).grid(row = 0, column = 0, sticky = W, padx = 0)
 Ixx.grid(row=0, column=1, sticky=W)
 
-TorqueDeform = Text(OutputHolder, height = 0.5, width = 10, bg = "light cyan", font =1 , padx=10, pady=5)
-Label(OutputHolder, text="Tom's Deformation in Degrees", bg="white").grid(row = 1, column = 0, sticky = W, padx = 0)
+TorqueDeform = Text(OutputHolder, height = 0.5, width = 10, bg = "light cyan", font =2 , padx=10, pady=5)
+Label(OutputHolder, text="Tom's Deformation in Degrees", bg="white", font=2).grid(row = 1, column = 0, sticky = W, padx = 0)
 TorqueDeform.grid(row=1, column=1, sticky=W)
 
 fig, ax = plt.subplots()
-TomsCanvas = FigureCanvasTkAgg(fig, master=root)
+TomsCanvas = FigureCanvasTkAgg(fig, master=BottomHolder)
 TomsCanvas.get_tk_widget().grid(row = 2, column = 0, sticky = W, padx = 0)
 
 fig2, ax2 = plt.subplots()
-TomsCanvas2 = FigureCanvasTkAgg(fig2, master=root)
+TomsCanvas2 = FigureCanvasTkAgg(fig2, master=BottomHolder)
 TomsCanvas2.get_tk_widget().grid(row = 3, column = 0, sticky = W, padx = 0)
+
+fig, ax3 = plt.subplots()
+ShearCanvas = FigureCanvasTkAgg(fig, master=BottomHolder)
+ShearCanvas.get_tk_widget().grid(row = 2, column = 1, sticky = W, padx = 0)
+
+fig2, ax4 = plt.subplots()
+DeformCanvas = FigureCanvasTkAgg(fig2, master=BottomHolder)
+DeformCanvas.get_tk_widget().grid(row = 3, column = 1, sticky = W, padx = 0)
 
 C.grid(row = 0, column = 0, sticky = W, padx = 2)
 VariableHolder.grid(row = 0, column = 0, sticky = W, padx = 0)
-OutputHolder.grid(row = 0, column = 1, sticky = W, padx = 0)
+OutputHolder.grid(row = 1, column = 0, sticky = W, padx = 0)
 BottomHolder.grid(row = 1, column = 0, sticky = W, padx = 0)
+GraphsHolder.grid(row = 2, column  =0, padx = 20, pady = 50)
+
 
 root.mainloop()
