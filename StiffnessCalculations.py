@@ -50,7 +50,7 @@ def Torsion(data,load_factor,velocity,density,engine_thrust,resolution,front_spa
     Moment_torsion = []
     
     cmy = xl.cmdist(data)
-    cly = xl.wingloading(data)
+    cly = xl.cldist(data)
 
     i = 0
     while i < span/2:
