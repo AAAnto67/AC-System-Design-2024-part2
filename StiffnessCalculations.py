@@ -63,7 +63,7 @@ def Torsion(data,load_factor,velocity,density,engine_thrust,resolution,front_spa
             LocalTorsion += engine_thrust * engine_vert_dist * ma.cos(engine_angle)
 
         if i <= engine_hor_dist:
-            LocalTorsion += -1 * front_spar_location * (chord_a*engine_hor_dist + chord_b) * engine_weight * load_factor
+            LocalTorsion += -1 * front_spar_location * (chord_a*engine_hor_dist + chord_b) * engine_weight
         
         #lift contribution to the torsion
         k = i
@@ -89,9 +89,9 @@ def Torsion(data,load_factor,velocity,density,engine_thrust,resolution,front_spa
             Moment_T += M
             j += resolution
 
-        Torsion_y.append(round(LocalTorsion,3))
-        Lift_torsion.append(round(Lift_T,3))
-        Moment_torsion.append(round(Moment_T,3))
+        Torsion_y.append(round(LocalTorsion * load_factor,3))
+        Lift_torsion.append(round(Lift_T * load_factor,3))
+        Moment_torsion.append(round(Moment_T * load_factor,3))
 
         i += resolution
     
