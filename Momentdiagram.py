@@ -1,7 +1,7 @@
 from XFLR5 import *
 from matplotlib import pyplot as plt
 
-def moment(weight, V, loadfactor)
+def moment(weight, V, loadfactor):
     halfspan = 13
     dy = 0.1
     rho = 0.5
