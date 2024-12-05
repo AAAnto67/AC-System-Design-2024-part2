@@ -23,10 +23,13 @@ engine_weight = 16461.2
 chord_a = -2 * (1 - taper_ratio) * root_chord / span
 chord_b = root_chord
 
-def TorsionalConstant(front_spar_location,rear_spar_location,spar_thickness,top_thickness,y):    
+def TorsionalConstant(front_spar_location,rear_spar_location,spar_t,skin_t,y):    
 
     chord = chord_a*y + chord_b
     delta_spar_location = rear_spar_location - front_spar_location
+
+    spar_thickness = spar_t * chord / root_chord
+    top_thickness = skin_t * chord / root_chord
 
     #the spar height is found using a separate function.
     front_spar_height = af.get_thickness(front_spar_location) * chord
@@ -127,6 +130,10 @@ def deformation(data,load_factor,velocity,density,engine_thrust,resolution,front
     tipdeformation = totaldeformation[-1] 
 
     return(diffdeformation,totaldeformation,tipdeformation)
+
+y = deformation('a.txt',3,86.10,0.3,78500,0.05,0.2,0.7,0.01,0.01)
+
+print("the deformation at the tip is " + str(y[2]) + " degrees.")
 
 
 
