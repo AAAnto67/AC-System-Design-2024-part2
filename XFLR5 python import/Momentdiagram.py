@@ -40,7 +40,7 @@ def moment(weight, V, loadfactor)
             moment += arm * V_list[j] * dy
     
         if y < y_engine:
-            moment += engine_weight * (y_engine - y) - loadfactor * trust * r_engine * np.sin(engine_angle)
+            moment += loadfactor * (engine_weight * (y_engine - y) - trust * r_engine * np.sin(engine_angle))
     
         M_list.append(moment)
         
