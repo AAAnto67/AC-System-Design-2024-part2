@@ -1,9 +1,9 @@
 import Momentdiagram
 import numpy as np
 
-def CalcDisplace(I_root, weight, V, Rho, AoA):
+def CalcDisplace(I_root, weight, V, Rho, AoA, loadfactor):
 
-    M_list, V_list, halfspan, y_list, dy = Momentdiagram.moment(weight, V, Rho, AoA)
+    M_list, V_list, halfspan, y_list, dy = Momentdiagram.moment(weight, V, Rho, AoA, loadfactor)
     lamb = 0.316
     E = 70E9
 
