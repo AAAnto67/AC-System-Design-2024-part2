@@ -40,7 +40,7 @@ def TorsionalConstant(front_spar_location,rear_spar_location,spar_thickness,top_
     J = 4 * enclosed_area**2 / line_integral
     return(J)
 
-def Torsion(data,velocity,density,engine_thrust,resolution,front_spar_location,rear_spar_location):
+def Torsion(data,load_factor,velocity,density,engine_thrust,resolution,front_spar_location,rear_spar_location):
     
     #the torsion will be calculated in small quantaties based on the moment coefficient in the given location.
     #the torsion of all the parts will then be added together.
@@ -63,7 +63,7 @@ def Torsion(data,velocity,density,engine_thrust,resolution,front_spar_location,r
             LocalTorsion += engine_thrust * engine_vert_dist * ma.cos(engine_angle)
 
         if i <= engine_hor_dist:
-            LocalTorsion += -1 * front_spar_location * (chord_a*i + chord_b) * engine_weight
+            LocalTorsion += -1 * front_spar_location * (chord_a*engine_hor_dist + chord_b) * engine_weight * load_factor
         
         #lift contribution to the torsion
         k = i
@@ -102,10 +102,10 @@ def Torsion(data,velocity,density,engine_thrust,resolution,front_spar_location,r
 #xtab = Torsion('a.txt',86.10,0.3,78500,0.1)[0]
 #ytab = Torsion('a.txt',86.10,0.3,78500,0.1)[1]
 
-def deformation(data,velocity,density,engine_thrust,resolution,front_spar_location,rear_spar_location,spar_thickness,top_thickness):
+def deformation(data,load_factor,velocity,density,engine_thrust,resolution,front_spar_location,rear_spar_location,spar_thickness,top_thickness):
     G = 28 * 10**9
 
-    torsionf = Torsion(data,velocity,density,engine_thrust,resolution,front_spar_location,rear_spar_location)
+    torsionf = Torsion(data,load_factor,velocity,density,engine_thrust,resolution,front_spar_location,rear_spar_location)
     ytab = torsionf[0]
     torsion = torsionf[1]
 
