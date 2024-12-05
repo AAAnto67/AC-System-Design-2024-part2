@@ -1,7 +1,7 @@
 from XFLR5 import *
 from matplotlib import pyplot as plt
 
-def moment(weight, V)
+def moment(weight, V, loadfactor)
     halfspan = 13
     dy = 0.1
     rho = 0.5
@@ -25,7 +25,7 @@ def moment(weight, V)
         segment_lift = 0.5 * rho * V**2 * c(y) * cl(0, y)
         segment_weight = area(y) * density
     
-        V_list.append(segment_lift - segment_weight) 
+        V_list.append((segment_lift - segment_weight) * loadfactor) 
         y_list.append(y)   
         y += dy
         
@@ -40,7 +40,7 @@ def moment(weight, V)
             moment += arm * V_list[j] * dy
     
         if y < y_engine:
-            moment += engine_weight * (y_engine - y) - trust * r_engine * np.sin(engine_angle)
+            moment += engine_weight * (y_engine - y) - loadfactor * trust * r_engine * np.sin(engine_angle)
     
         M_list.append(moment)
         
