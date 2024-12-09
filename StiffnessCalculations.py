@@ -68,9 +68,10 @@ def Torsion(data,load_factor,velocity,density,engine_thrust,resolution,centroid_
         if i <= engine_hor_dist:
             LocalTorsion += engine_thrust * (engine_y + centroid_y / root_chord * engine_chord) * ma.cos(engine_angle)
 
-        if i <= engine_hor_dist:
+        if i <= engine_hor_dist and load_factor != 0:
             LocalTorsion += -1 * (centroid_x / root_chord - engine_x_ratio) * engine_chord * engine_weight / load_factor
         
+
         #lift contribution to the torsion
         k = i
         while k < span/2:
@@ -133,6 +134,8 @@ def deformation(data,load_factor,velocity,density,engine_thrust,resolution,front
     tipdeformation = totaldeformation[-1] 
 
     return(diffdeformation,totaldeformation,tipdeformation)
+
+
 
 
 
