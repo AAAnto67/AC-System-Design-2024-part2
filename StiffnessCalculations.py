@@ -64,7 +64,7 @@ def Torsion(alpha,load_factor,velocity,density,engine_thrust,resolution,centroid
         #engine contribution to the torsion
         if i <= engine_hor_dist:
             LocalTorsion += engine_thrust * (engine_y + centroid_y / root_chord * engine_chord) * ma.cos(engine_angle) * load_factor
-
+            print(engine_thrust * (engine_y + centroid_y / root_chord * engine_chord) * ma.cos(engine_angle) * load_factor)
         if i <= engine_hor_dist:
             LocalTorsion += -1 * (centroid_x / root_chord - engine_x_ratio) * engine_chord * engine_weight
         
