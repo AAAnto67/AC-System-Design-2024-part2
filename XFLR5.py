@@ -117,7 +117,7 @@ def cm(alpha, y):
 #       cl10(y)      -----> section cl at (10, y)
 #       cm0(y)       -----> section cm at (0, y)
 #       cm10(y)      -----> section cm at (10, y)
-#       cm(alpha, y)
+#       cm(alpha, y) -----> section cm at (alpha, y)
 #
 #   wing:
 #       CL(alpha)    -----> wing    CL at alpha
