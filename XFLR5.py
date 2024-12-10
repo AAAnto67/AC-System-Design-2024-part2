@@ -74,6 +74,10 @@ file.close
 CL0 = float(XFLR0[9].split()[2].strip(','))
 CL10 = float(XFLR10[9].split()[2].strip(','))
 
+#Store lift coefficient for the whole wing at 0 and 10 deg
+Cm0 = float(XFLR0[13].split()[2].strip(','))
+Cm10 = float(XFLR10[13].split()[2].strip(','))
+
 #Store spanwise lift coefficient at 0 and 10 deg
 cl0 = cldist('MainWing_a=0.00_v=10.00ms.txt')
 cl10 = cldist('MainWing_a=10.00_v=10.00ms.txt')
@@ -88,6 +92,9 @@ def CL(alpha):
     CLd = (alpha / 10) * (CL10 - CL0) + CL0
     return(CLd)
 
+def Cm(alpha):
+    Cmd = (alpha / 10) * (Cm10 - Cm0) + Cm0
+
 def angle(CL):
     angle = (CL - CL0) * 10 / (CL10 - CL0)
     return(angle)
@@ -98,9 +105,9 @@ def cl(alpha, y):
     cld = cl0(y) + ((CL(alpha) - CL0) / (CL10 - CL0)) * cl10(y) - cl0(y) 
     return(cld) 
 
-# def cm(alpha, y):
-#     cmd = cl0(y) + ((Cm(alpha) - Cm0) / (Cm10 - Cm0)) * cm10(y) - cl0(y) 
-#     return(cld) 
+def cm(alpha, y):
+    cmd = cm0(y) + ((Cm(alpha) - Cm0) / (Cm10 - Cm0)) * cm10(y) - cm0(y) 
+    return(cld) 
 
 
 #Results of this python code:
@@ -110,6 +117,7 @@ def cl(alpha, y):
 #       cl10(y)      -----> section cl at (10, y)
 #       cm0(y)       -----> section cm at (0, y)
 #       cm10(y)      -----> section cm at (10, y)
+#       cm(alpha, y)
 #
 #   wing:
 #       CL(alpha)    -----> wing    CL at alpha
