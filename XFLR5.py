@@ -19,7 +19,7 @@ def cldist(data):
     for i in range(38):
         y_position = wingloading[21+i].split()[0].strip(','))
         y.append(float(y_position))
-        if y_position <= 1.4
+        if float(y_position) <= 1.4:
             cldata.append(float(wingloading[21+i].split()[3].strip(',')))
 
     #interpolate the y and cldata list with cubic interpolation and return function
