@@ -17,7 +17,7 @@ def cldist(data):
 
     #loop over line 21 up until 59 and ad the corresponding values for y and cl in the correct list
     for i in range(38):
-        y_position = wingloading[21+i].split()[0].strip(','))
+        y_position = wingloading[21+i].split()[0].strip(',')
         y.append(float(y_position))
         if float(y_position) <= 1.4:
             cldata.append(float(wingloading[21+i].split()[3].strip(',')))
