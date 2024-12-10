@@ -49,7 +49,7 @@ def cmdist(data):
         if float(y_position) <= 1.4:
             cmdata.append(0)
         else:
-            cmdata.append(float(moment[21+i].split()[6].strip(',')))
+            cmdata.append(float(moment[21+i].split()[7].strip(',')))
 
     #interpolate the y and cmdata list with cubic interpolation and return function
     cm = sp.interpolate.interp1d(y,cmdata,kind='cubic',fill_value="extrapolate") 
