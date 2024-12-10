@@ -106,14 +106,19 @@ def angle(CL):
     angle = (CL - CL0) * 10 / (CL10 - CL0)
     return(angle)
 
-
 #Define a function that calculates the section cl for any angle of attack and position
 def cl(alpha, y):
-    cld = cl0(y) + ((CL(alpha) - CL0) / (CL10 - CL0)) * cl10(y) - cl0(y) 
+    if y <= 1.4:
+        cld = 0
+    else:
+        cld = cl0(y) + ((CL(alpha) - CL0) / (CL10 - CL0)) * cl10(y) - cl0(y) 
     return(cld) 
 
 def cm(alpha, y):
-    cmd = cm0(y) + ((Cm(alpha) - Cm0) / (Cm10 - Cm0)) * cm10(y) - cm0(y) 
+    if y <= 1.4:
+        cmd = 0
+    else:
+        cmd = cm0(y) + ((Cm(alpha) - Cm0) / (Cm10 - Cm0)) * cm10(y) - cm0(y) 
     return(cmd) 
 
 
