@@ -108,7 +108,7 @@ def cl(alpha, y):
 
 def cm(alpha, y):
     cmd = cm0(y) + ((Cm(alpha) - Cm0) / (Cm10 - Cm0)) * cm10(y) - cm0(y) 
-    return(cld) 
+    return(cmd) 
 
 
 #Results of this python code:
