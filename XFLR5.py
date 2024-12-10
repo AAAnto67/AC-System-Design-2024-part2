@@ -20,7 +20,7 @@ def cldist(data):
         y_position = wingloading[21+i].split()[0].strip(','))
         y.append(float(y_position))
         if y_position <= 1.4
-        cldata.append(float(wingloading[21+i].split()[3].strip(',')))
+            cldata.append(float(wingloading[21+i].split()[3].strip(',')))
 
     #interpolate the y and cldata list with cubic interpolation and return function
     cl = sp.interpolate.interp1d(y,cldata,kind='cubic',fill_value="extrapolate") 
@@ -94,6 +94,7 @@ def CL(alpha):
 
 def Cm(alpha):
     Cmd = (alpha / 10) * (Cm10 - Cm0) + Cm0
+    return(Cmd)
 
 def angle(CL):
     angle = (CL - CL0) * 10 / (CL10 - CL0)
