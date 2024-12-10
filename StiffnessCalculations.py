@@ -44,7 +44,7 @@ def TorsionalConstant(front_spar_location,rear_spar_location,spar_t,skin_t,y):
     J = 4 * enclosed_area**2 / line_integral
     return(J)
 
-def Torsion(data,load_factor,velocity,density,engine_thrust,resolution,centroid_x,centroid_y):
+def Torsion(alpha,load_factor,velocity,density,engine_thrust,resolution,centroid_x,centroid_y):
     
     #the torsion will be calculated in small quantaties based on the moment coefficient in the given location.
     #the torsion of all the parts will then be added together.
@@ -52,9 +52,6 @@ def Torsion(data,load_factor,velocity,density,engine_thrust,resolution,centroid_
     Torsion_y = []
     Lift_torsion = []
     Moment_torsion = []
-    
-    cmy = xl.cmdist(data)
-    cly = xl.cldist(data)
 
     i = 0
     while i < span/2:
@@ -66,39 +63,38 @@ def Torsion(data,load_factor,velocity,density,engine_thrust,resolution,centroid_
         
         #engine contribution to the torsion
         if i <= engine_hor_dist:
-            LocalTorsion += engine_thrust * (engine_y + centroid_y / root_chord * engine_chord) * ma.cos(engine_angle)
+            LocalTorsion += engine_thrust * (engine_y + centroid_y / root_chord * engine_chord) * ma.cos(engine_angle) * load_factor
 
-        if i <= engine_hor_dist and load_factor != 0:
-            LocalTorsion += -1 * (centroid_x / root_chord - engine_x_ratio) * engine_chord * engine_weight / load_factor
+        if i <= engine_hor_dist:
+            LocalTorsion += -1 * (centroid_x / root_chord - engine_x_ratio) * engine_chord * engine_weight
         
-
         #lift contribution to the torsion
         k = i
         while k < span/2:
-            cl = cly(k+resolution/2)
+            cl = xl.cl(alpha,k)
             chord = chord_a*k + chord_b
             shear_centre_location = (centroid_x / root_chord * chord)
             load_location = 0.25 * chord
             S = chord * resolution
             L = cl*0.5*density*velocity**2*S
-            LocalTorsion += L * (shear_centre_location - load_location)
-            Lift_T += L * (shear_centre_location - load_location)
+            LocalTorsion += L * (shear_centre_location - load_location) * load_factor
+            Lift_T += L * (shear_centre_location - load_location) * load_factor
             k += resolution
 
         #moment contribution to the torsion
         j = i
         while j < span/2:
-            cm = cmy(j+resolution/2)
+            cm = xl.cm(alpha,j)
             chord = chord_a*j + chord_b
             S = chord*resolution
             M = cm*chord*0.5*density*velocity**2*S
-            LocalTorsion += M
-            Moment_T += M
+            LocalTorsion += M * load_factor
+            Moment_T += M * load_factor
             j += resolution
 
-        Torsion_y.append(round(LocalTorsion * load_factor,3))
-        Lift_torsion.append(round(Lift_T * load_factor,3))
-        Moment_torsion.append(round(Moment_T * load_factor,3))
+        Torsion_y.append(round(LocalTorsion,3))
+        Lift_torsion.append(round(Lift_T,3))
+        Moment_torsion.append(round(Moment_T,3))
 
         i += resolution
     
@@ -109,10 +105,10 @@ def Torsion(data,load_factor,velocity,density,engine_thrust,resolution,centroid_
 #xtab = Torsion('a.txt',86.10,0.3,78500,0.1)[0]
 #ytab = Torsion('a.txt',86.10,0.3,78500,0.1)[1]
 
-def deformation(data,load_factor,velocity,density,engine_thrust,resolution,front_spar_location,rear_spar_location,spar_thickness,top_thickness,centroid_x,centroid_y):
+def deformation(alpha,load_factor,velocity,density,engine_thrust,resolution,front_spar_location,rear_spar_location,spar_thickness,top_thickness,centroid_x,centroid_y):
     G = 28 * 10**9
 
-    torsionf = Torsion(data,load_factor,velocity,density,engine_thrust,resolution,centroid_x,centroid_y)
+    torsionf = Torsion(alpha,load_factor,velocity,density,engine_thrust,resolution,centroid_x,centroid_y)
     ytab = torsionf[0]
     torsion = torsionf[1]
 
