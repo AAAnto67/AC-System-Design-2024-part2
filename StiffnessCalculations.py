@@ -64,7 +64,6 @@ def Torsion(alpha,load_factor,velocity,density,engine_thrust,resolution,centroid
         #engine contribution to the torsion
         if i <= engine_hor_dist:
             LocalTorsion += engine_thrust * (engine_y + centroid_y / root_chord * engine_chord) * ma.cos(engine_angle) * load_factor
-            print(engine_thrust * (engine_y + centroid_y / root_chord * engine_chord) * ma.cos(engine_angle) * load_factor)
         if i <= engine_hor_dist:
             LocalTorsion += -1 * (centroid_x / root_chord - engine_x_ratio) * engine_chord * engine_weight
         
@@ -114,7 +113,7 @@ def deformation(alpha,load_factor,velocity,density,engine_thrust,resolution,fron
 
     diffdeformation = []
     for i in range(len(ytab)):
-        diffdeformation.append(torsion[i] / G / TorsionalConstant(front_spar_location,rear_spar_location,spar_thickness,top_thickness,ytab[i]) * 180 / 3.1415)
+        diffdeformation.append(-(torsion[i] / G / TorsionalConstant(front_spar_location,rear_spar_location,spar_thickness,top_thickness,ytab[i]) * 180 / 3.1415))
 
     #print(len(diffdeformation))
 
