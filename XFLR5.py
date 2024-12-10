@@ -13,16 +13,17 @@ def cldist(data):
     #create empty lists for y position and cm
     y = []
     cldata = []
-    r_fuselage = 1.4
 
     #loop over line 21 up until 59 and ad the corresponding values for y and cl in the correct list
     for i in range(38):
         y_position = wingloading[21+i].split()[0].strip(',')
         y.append(float(y_position))
         if float(y_position) <= 1.4:
-            cldata.append(float(wingloading[21+i].split()[3].strip(',')))
-        else:
             cldata.append(0)
+        else:
+            cldata.append(float(wingloading[21+i].split()[3].strip(',')))
+
+    print(cldata)
 
     #interpolate the y and cldata list with cubic interpolation and return function
     cl = sp.interpolate.interp1d(y,cldata,kind='cubic',fill_value="extrapolate") 
@@ -46,9 +47,9 @@ def cmdist(data):
         y_position = float(moment[21+i].split()[0].strip(','))
         y.append(y_position)
         if float(y_position) <= 1.4:
-            cmdata.append(float(moment[21+i].split()[6].strip(',')))
-        else:
             cmdata.append(0)
+        else:
+            cmdata.append(float(moment[21+i].split()[6].strip(',')))
 
     #interpolate the y and cmdata list with cubic interpolation and return function
     cm = sp.interpolate.interp1d(y,cmdata,kind='cubic',fill_value="extrapolate") 
@@ -106,6 +107,7 @@ def angle(CL):
     angle = (CL - CL0) * 10 / (CL10 - CL0)
     return(angle)
 
+
 #Define a function that calculates the section cl for any angle of attack and position
 def cl(alpha, y):
     if y <= 1.4:
@@ -134,4 +136,4 @@ def cm(alpha, y):
 #   wing:
 #       CL(alpha)    -----> wing    CL at alpha
 #       CL0          -----> wing    CL at alpha = 0
-#       CL10         -----> wing    CL at alpha = 10  
+#       CL10         -----> wing    CL at alpha = 10   
