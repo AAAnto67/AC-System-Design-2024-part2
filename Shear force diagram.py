@@ -34,9 +34,9 @@ def shear_diagram(V, rho, AoA, loadfactor):
             V_list.insert(0, V + engine_weight)
         else:
             V_list.insert(0, V)
+    return(y_list, V_list)
 
-
- 
+    """
     # Add labels and title
     plt.plot(y_list, V_list)
 
@@ -48,5 +48,8 @@ def shear_diagram(V, rho, AoA, loadfactor):
     # Add grid and legend
     plt.grid(True)
 
+    # Show the plot
+    plt.show()
+    """
     # Show the plot
     plt.show()
