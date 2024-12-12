@@ -1,0 +1,79 @@
+import math as ma
+import matplotlib.pyplot as plt
+
+def ColumnBuckling(StringerI,InterRibDistance,StringerA):
+    K = 1 #estimate for pins
+    E = 72.4 * 10**9
+
+    CriticalStress = K * ma.pi**2 * E * StringerI / (InterRibDistance**2) / StringerA
+    return(CriticalStress)
+
+def MaxStress(RibDistances,h,b,t):
+
+    StringerArea = h * t + (b-t) * t
+    StringerIxx = I(h,b,t)[0]
+
+    xtab = [0]
+    ytab = []
+    MaxStressList = []
+    RibsNumber = len(RibDistances)
+
+    for i in range(1,RibsNumber):
+        Length = RibDistances[i] - RibDistances[i-1]
+        MaxStressLocal = ColumnBuckling(StringerIxx,Length,StringerArea)
+        MaxStressList.append(MaxStressLocal)
+
+        xtab.append(RibDistances[i]-0.01)
+        xtab.append(RibDistances[i]+0.01)
+
+        ytab.append(MaxStressLocal)
+        ytab.append(MaxStressLocal)
+    
+    xtab.pop(-1)
+
+    return(MaxStressList,xtab,ytab)
+
+def I(h,b,t):
+    A_1 = h * t
+    xd_1 = t / 2
+    yd_1 = h / 2
+
+    A_2 = (b - t) * t
+    xd_2 = t + (b - t) / 2
+    yd_2 = t / 2
+
+    total_area = A_1 + A_2
+
+    x_bar = (xd_1 * A_1 + xd_2 * A_2) / total_area
+    y_bar = (yd_1 * A_1 + yd_2 * A_2) / total_area
+
+    I_x_1 = 1/12 * t * h**3
+    I_y_1 = 1/12 * h * t**3
+
+    I_x_2 = 1/12 * (b - t) * t**3
+    I_y_2 = 1/12 * t * (b - t)**3
+
+    I_xx = I_x_1 + A_1 * (yd_1 - y_bar)**2 + I_x_2 + A_2 * (yd_2 - y_bar)**2 
+    I_yy = I_y_1 + A_1 * (xd_1 - x_bar)**2 + I_y_2 + A_2 * (xd_2 - x_bar)**2
+    I_xy = A_1 * (yd_1 - y_bar) * (xd_1 - x_bar) + A_2 * (yd_2 - y_bar) * (xd_2 - x_bar) 
+
+    return(I_xx,I_yy,I_xy)
+
+Maxes = MaxStress([0,4,13.75],0.04,0.04,0.005)
+
+xtab = Maxes[1]
+ytab = Maxes[2]
+
+#plt.plot(xtab, ytab, linestyle='-', color='g')
+
+# Add labels and title
+#plt.xlabel('y')
+#plt.ylabel('Max Stress [Pa]')
+#plt.legend()
+#plt.title('Plot of Torsion as a function of y')
+
+# Add grid and legend
+#plt.grid(True)
+
+# Show the plot
+#plt.show()
