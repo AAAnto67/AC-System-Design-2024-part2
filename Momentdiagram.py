@@ -10,9 +10,8 @@ def moment(weight, V, rho, AoA, loadfactor):
     trust = 78500
     r_engine = 1.7
     engine_angle = 30
-    wing_weight = 6748 * 9.81
-    volume = 24.47
-    density = wing_weight / volume
+    volume = 12.47
+    density = weight / volume
 
     V_list = []
     y_list = []
@@ -26,7 +25,7 @@ def moment(weight, V, rho, AoA, loadfactor):
         segment_lift = 0.5 * rho * V**2 * c(y) * cl(AoA, y)
         segment_weight = area(y) * density
     
-        V_list.append(loadfactor * (segment_lift - segment_weight)) 
+        V_list.append(-loadfactor * (segment_lift - segment_weight)) 
         y_list.append(y)   
         y += dy
         
@@ -44,12 +43,9 @@ def moment(weight, V, rho, AoA, loadfactor):
             moment += loadfactor * (engine_weight * (y_engine - y) - trust * r_engine * np.sin(engine_angle))
     
         M_list.append(moment)
-        
+    plt.plot(y_list, M_list)
+    plt.show()
     return(M_list, V_list, halfspan, y_list, dy)
-    
-        
-    #plt.plot(y_list, V_list)
-    #plt.show()
 
 
 
