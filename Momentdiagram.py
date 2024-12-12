@@ -10,8 +10,9 @@ def moment(weight, V, rho, AoA, loadfactor):
     trust = 78500
     r_engine = 1.7
     engine_angle = 30
-    volume = 12.47
-    density = weight / volume
+    wing_weight = 6748
+    volume = 24.47
+    density = wing_weight / volume
 
     V_list = []
     y_list = []
