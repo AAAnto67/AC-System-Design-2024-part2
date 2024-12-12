@@ -7,7 +7,7 @@ def shear_diagram(V, rho, AoA, loadfactor):
     engine_weight = 1678.3 * 9.81
     y_engine = 4.8
     volume = 48.96
-    wing_weight = 6748
+    wing_weight = 6748 * 9.81
     density = wing_weight / volume
 
     dist_list = []
