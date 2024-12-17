@@ -25,10 +25,9 @@ class SkinPanel:
         return margin
 
 
-def marginOfSafetyList(stringerPositions, ribPositions, compressiveStressesList, panelThickness):
+def marginOfSafetyList(stringerPositions, ribPositions, compressiveStressesList, panelThickness, span):
     '''Returns a list of margins of safety for each panel.'''
     results = []
-    span = ribPositions[-1]  # Total span length
     for stringer_index in range(len(stringerPositions) - 1):  # Loop through stringers
         b = stringerPositions[stringer_index + 1] - stringerPositions[stringer_index]  # Chordwise width
 
@@ -52,5 +51,6 @@ stringerPositions = []  # Chordwise positions of stringers [m]
 ribPositions = []  # Spanwise positions of ribs [m]
 compressiveStressesList = []  # Compressive stresses at rib positions [Pa]
 panelThickness = 0  # Panel thickness [m]
+span = 13.75
 
-print(marginOfSafetyList(stringerPositions, ribPositions, compressiveStressesList, panelThickness))
+print(marginOfSafetyList(stringerPositions, ribPositions, compressiveStressesList, panelThickness, span))
