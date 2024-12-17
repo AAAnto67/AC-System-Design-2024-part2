@@ -33,6 +33,60 @@ def MaxStress(RibDistances,h,b,t):
 
     return(MaxStressList,xtab,ytab)
 
+def GetMaxStress(InterRibDistance,MaxStressList,y):
+    # Check if the input value is out of range
+    if y < InterRibDistance[0] or y > InterRibDistance[-1]:
+        raise ValueError("Input value is out of the specified distance range.")
+    
+    # Loop through the segments to find the appropriate one
+    for i in range(len(InterRibDistance) - 1):
+        if InterRibDistance[i] <= y < InterRibDistance[i + 1]:
+            return MaxStressList[i]
+    
+    if y == InterRibDistance[-1]:
+        return MaxStressList[-1]
+
+def AppliedCompression(MomentList,yList,IList,RootMaxSpar,TipMaxSpar):
+
+    Compression = []
+    for i in range(len(MomentList)):
+
+        SparLength = RootMaxSpar - (RootMaxSpar - TipMaxSpar) * yList [i] / 13.75
+
+        MaxCompressiveStress = (SparLength/2) * MomentList[i] / IList [i]
+        Compression.append(MaxCompressiveStress)
+
+        return(yList,MaxCompressiveStress)
+    
+def BigBuckling(AppliedCompressionList,yList,InterRibDistance,h,b,t):
+
+    AllowedCompressionList = MaxStress(InterRibDistance,h,b,t)
+
+    MarginList = []
+
+    for i in range(yList):
+        y = yList[i]
+        MaxAllowed = GetMaxStress(InterRibDistance,AllowedCompressionList[0],y)
+        Applied = AppliedCompressionList[i]
+        Margin = MaxAllowed / Applied
+        MarginList.append(Margin)
+
+    xtaballowed = AllowedCompressionList[1]
+    ytaballowed = AllowedCompressionList[2]
+    xtabapplied = yList
+    ytabapplied = AppliedCompressionList[1]
+    xtabMargin = yList
+    ytabMargin = MarginList
+
+    return(xtaballowed, ytaballowed, xtabapplied, ytabapplied, xtabMargin, ytabMargin)
+
+
+
+
+
+
+
+
 def I(h,b,t):
     A_1 = h * t
     xd_1 = t / 2
@@ -58,22 +112,3 @@ def I(h,b,t):
     I_xy = A_1 * (yd_1 - y_bar) * (xd_1 - x_bar) + A_2 * (yd_2 - y_bar) * (xd_2 - x_bar) 
 
     return(I_xx,I_yy,I_xy)
-
-Maxes = MaxStress([0,4,13.75],0.04,0.04,0.005)
-
-xtab = Maxes[1]
-ytab = Maxes[2]
-
-#plt.plot(xtab, ytab, linestyle='-', color='g')
-
-# Add labels and title
-#plt.xlabel('y')
-#plt.ylabel('Max Stress [Pa]')
-#plt.legend()
-#plt.title('Plot of Torsion as a function of y')
-
-# Add grid and legend
-#plt.grid(True)
-
-# Show the plot
-#plt.show()
