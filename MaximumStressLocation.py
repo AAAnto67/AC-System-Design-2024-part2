@@ -2,9 +2,8 @@ from Momentdiagram import moment
 from XFLR5 import angle 
 #from ICalc import PleunsFinalFunlist
 
-def maximumstress(M, y_max, I):
-    sigma = M*y_max/I
-    return (sigma)
+def CalcMaxStress(I_list, y, M_list):
+    return([(M_list[i] * y[i])/I_list[i] for i in range(len(I_list))])
 
 
 #parameters
