@@ -98,7 +98,7 @@ def CalcString(StringX, ListOfSecondCoord, Angle, Stringheight):
     #C.create_line(ScalingFactor*(StringX + ListOfSecondCoord[0][0])/RootChord + Offset, CanvasDimensions[1], ScalingFactor*(StringX + ListOfSecondCoord[0][0])/RootChord + Offset, -ScalingFactor*(StringY)/RootChord + CanvasDimensions[1]*0.5)
     return(StringY)
 
-def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumBot, StringArea, debug, StringerThicc, StringerLength, StringerHeight):
+def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumBot, StringArea, debug, StringerThicc, StringerLength, StringerHeight, TomPositions):
     HThickness = HThickness/1000
     VThickness = VThickness/1000
     FrontSparTop = FinalAirfoilPoints[1][FindClosest(FinalAirfoilPoints[0], FrontSparX/RootChord)]*RootChord
@@ -143,6 +143,8 @@ def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumB
     ax2.clear()
     ax3.clear()
     ax4.clear()
+    ax5.clear()
+    ax6.clear()
 
     if debug == 0 or debug == 1:
 
@@ -213,7 +215,20 @@ def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumB
         ax4.set_xlabel("distance from root chord")
         ax4.set_ylabel("Deflection (m)")
     
+
     if debug == 2:
+        TomsPositionsList = [] #list that will allow us
+        DecipherPositionsString = []
+        #Deciphering the TomsPositions variable
+        for i in range(len(TomPositions)):
+
+            if TomPositions[i].isnumeric() or TomPositions[i] == ".":
+                DecipherPositionsString.append(TomPositions[i])
+            elif DecipherPositionsString != []:
+                TomsPositionsList.append(float("".join(DecipherPositionsString)))
+                DecipherPositionsString = []
+        if DecipherPositionsString != []: TomsPositionsList.append(float("".join(DecipherPositionsString)))
+
         ShearListTop = ShearForceDiagram.shear_diagram(LoadCases.SpeedFactorsList[56], LoadCases.DensitiesList[56], LoadCases.AoAList[56], LoadCases.LoadFactorsList[56])[1] #Top refers to the conditions of maximum upwards wing loading
         XList = [HalfWingSpan * i/141 for i in range(141)]
         ShearListBot = ShearForceDiagram.shear_diagram(LoadCases.SpeedFactorsList[27], LoadCases.DensitiesList[27], LoadCases.AoAList[27], LoadCases.LoadFactorsList[27])[1] #Bot refers to the conditions of minimum wing loading
@@ -232,50 +247,57 @@ def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumB
         MaxStressTop = MaximumStressLocation.CalcMaxStress(IList, PleunsFinalFunList[0], MomentListTop)
         MaxStressBot = MaximumStressLocation.CalcMaxStress(IList, PleunsFinalFunList[0], MomentListBot)
 
+        print(PleunsFinalFunList[0])
+
         MaxCompressiveStressTop = MaximumStressLocation.CalcMaxStress(IList, PleunsFunnyTopList[0], MomentListTop)
         MaxCompressiveStressBot = MaximumStressLocation.CalcMaxStress(IList, PleunsFunnyBotList[0], MomentListBot)#These are compressive stress only, for TOMM
 
-        #print([abs(MaxCompressiveStressTop[i]) for i in range(len(MaxCompressiveStressTop))])
         if max([abs(MaxCompressiveStressTop[i]) for i in range(len(MaxCompressiveStressTop))]) > max([abs(MaxCompressiveStressBot[i]) for i in range(len(MaxCompressiveStressBot))]): FinalMaxCompressiveStress = MaxCompressiveStressTop
         else: FinalMaxCompressiveStress = MaxCompressiveStressBot
 
-        print(XList)
-        print(FinalMaxCompressiveStress)
-
-        TomsMassiveList = ColumnBuckling.BigBuckling(FinalMaxCompressiveStress, XList, [0, 3, 7, 13.75], StringerHeight, StringerLength, StringerThicc) #This list contains the six mini lists from Tom's script
+        TomsMassiveList = ColumnBuckling.BigBuckling(FinalMaxCompressiveStress, XList, TomsPositionsList, StringerHeight, StringerLength, StringerThicc) #This list contains the six mini lists from Tom's script
 
         #plotting shear diagram
         ax.plot(XList, ShearListTop)
         ax.plot(XList, ShearListBot)
 
         #plotting moment diagram
-        ax4.plot(XList, [MaxStressTop[i]/10e6 for i in range(len(MaxStressTop))])
-        ax4.plot(XList, [MaxStressBot[i]/10e6 for i in range(len(MaxStressBot))])
+        ax2.plot(XList, [MaxStressTop[i]/10e6 for i in range(len(MaxStressTop))])
+        ax2.plot(XList, [MaxStressBot[i]/10e6 for i in range(len(MaxStressBot))])
 
         #plotting I
 
     
 
-        #ax3.plot(TomsMassiveList[0], TomsMassiveList[1])
-        #ax3.plot(TomsMassiveList[2], TomsMassiveList[3])
-        ax3.plot(TomsMassiveList[4], TomsMassiveList[5])
-    
+        ax5.plot(TomsMassiveList[0], [TomsMassiveList[1][i]/10e6 for i in range(len(TomsMassiveList[1]))], label="Maximum Allowable Stress [MPa]")
+        ax5.plot(TomsMassiveList[2], [TomsMassiveList[3][i]/10e6 for i in range(len(TomsMassiveList[3]))], label="Maximum Compressive Stress [MPa]")
+        ax6.plot(TomsMassiveList[4], TomsMassiveList[5])
 
         ax.set_title("Shear Diagram")
         ax.set_xlabel("Spanwise distance from root chord [m]")
         ax.set_ylabel("Shear [N]")
 
-        ax2.set_title("Moment of Inertia")
+        ax2.set_title("Maximum Stress")
         ax2.set_xlabel("Spanwise distance from root chord [m]")
-        ax2.set_ylabel("I [m^4]")
+        ax2.set_ylabel("Max Stress [MPa]")
 
-        ax3.set_title("Tom's Things")
+        ax3.set_title("???????????")
         ax3.set_xlabel("Spanwise distance from root chord [m]")
-        ax3.set_ylabel("Tom's fun stuff :)")
+        ax3.set_ylabel("I [m^4]")
 
-        ax4.set_title("Maximum Stress")
+        ax4.set_title("Maximum Allowable Stress [Pa]")
         ax4.set_xlabel("Spanwise distance from root chord [m]")
-        ax4.set_ylabel("Max Stress [MPa]")
+        ax4.set_ylabel("stress [Pa]")
+
+        ax5.set_title("Maximum Stresses [Pa]")
+        ax5.set_xlabel("Spanwise distance from root chord [m]")
+        ax5.set_ylabel("stress [Pa]")
+        ax5.legend()
+
+        ax6.set_title("Margin")
+        ax6.set_xlabel("Spanwise distance from root chord [m]")
+        ax6.set_ylabel("Margin")
+        ax6.set_ylim((0, 1))
     
 
     """
@@ -290,15 +312,14 @@ def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumB
     ax3.set_ylabel("Torsional Constant [m^4]")
     """
 
-    TomsCanvas.draw()
-    TomsCanvas2.draw()
-    ShearCanvas.draw()
-    DeformCanvas.draw()
+    GraphCanvas1.draw()
+    GraphCanvas2.draw()
+    GraphCanvas3.draw()
+    GraphCanvas4.draw()
+    GraphCanvas5.draw()
+    GraphCanvas6.draw()
 
     #plt.show()
-
-
-
 
 
 FinalI = 0
@@ -336,11 +357,11 @@ BottomHolder = Frame(root, bg = "gray", padx = 10, pady = 5)
 GraphsHolder = Frame(BottomHolder, bg = "light gray", padx = 0, pady = 0)
 VariableHolder = Frame(BottomHolder, bg = "light gray", padx = 10, pady = 5)
 
-ComputeButton = Button(VariableHolder, text="Compute", bg="red", font = 2, command=lambda:Main(float(FrontSparXINPUT.get()), float(BackSparXINPUT.get()), float(HThicknessINPUT.get()), float(VThicknessINPUT.get()), int(stringNumTopINPUT.get()), int(stringNumBotINPUT.get()), float(stringAreaINPUT.get()), 0, float(stringThickINPUT.get()), float(stringHINPUT.get()), float(stringVINPUT.get())))
+ComputeButton = Button(VariableHolder, text="Compute", bg="red", font = 2, command=lambda:Main(float(FrontSparXINPUT.get()), float(BackSparXINPUT.get()), float(HThicknessINPUT.get()), float(VThicknessINPUT.get()), int(stringNumTopINPUT.get()), int(stringNumBotINPUT.get()), float(stringAreaINPUT.get()), 0, float(stringThickINPUT.get())/1000, float(stringHINPUT.get())/1000, float(stringVINPUT.get())/1000, stringPosINPUT.get()))
 ComputeButton.grid(row = 0, column = 5, sticky = W, padx=10)
-DebugButton = Button(VariableHolder, text="Quick Compute", bg="green", font = 2, command=lambda:Main(float(FrontSparXINPUT.get()), float(BackSparXINPUT.get()), float(HThicknessINPUT.get()), float(VThicknessINPUT.get()), int(stringNumTopINPUT.get()), int(stringNumBotINPUT.get()), float(stringAreaINPUT.get()), 1, float(stringThickINPUT.get()), float(stringHINPUT.get()), float(stringVINPUT.get())))
+DebugButton = Button(VariableHolder, text="Quick Compute", bg="green", font = 2, command=lambda:Main(float(FrontSparXINPUT.get()), float(BackSparXINPUT.get()), float(HThicknessINPUT.get()), float(VThicknessINPUT.get()), int(stringNumTopINPUT.get()), int(stringNumBotINPUT.get()), float(stringAreaINPUT.get()), 1, float(stringThickINPUT.get())/1000, float(stringHINPUT.get())/1000, float(stringVINPUT.get())/1000, stringPosINPUT.get()))
 DebugButton.grid(row = 1, column = 5, sticky = W, padx=10)
-BuckleButton = Button(VariableHolder, text="Compute Buckle", bg="yellow", font = 2, command=lambda:Main(float(FrontSparXINPUT.get()), float(BackSparXINPUT.get()), float(HThicknessINPUT.get()), float(VThicknessINPUT.get()), int(stringNumTopINPUT.get()), int(stringNumBotINPUT.get()), float(stringAreaINPUT.get()), 2, float(stringThickINPUT.get()), float(stringHINPUT.get()), float(stringVINPUT.get())))
+BuckleButton = Button(VariableHolder, text="Compute Buckle", bg="yellow", font = 2, command=lambda:Main(float(FrontSparXINPUT.get()), float(BackSparXINPUT.get()), float(HThicknessINPUT.get()), float(VThicknessINPUT.get()), int(stringNumTopINPUT.get()), int(stringNumBotINPUT.get()), float(stringAreaINPUT.get()), 2, float(stringThickINPUT.get())/1000, float(stringHINPUT.get())/1000, float(stringVINPUT.get())/1000, stringPosINPUT.get()))
 BuckleButton.grid(row = 2, column = 5, sticky = W, padx=10)
 
 Label(VariableHolder, text="Front Spar X pos (m)", bg="white", font = 2).grid(row = 0, column = 0, sticky = W, padx = 2, pady=5)
@@ -380,18 +401,23 @@ stringAreaINPUT.grid(row = 6, column = 1, sticky = W, padx = 2, pady=5)
 
 Label(VariableHolder, text="Stringer Thickness (mm)", bg="white", font = 2).grid(row = 0, column = 2, sticky = W, padx = 2, pady=5)
 stringThickINPUT = Entry(VariableHolder, bd=3, font=2)
-stringThickINPUT.insert(0, 0.002)
+stringThickINPUT.insert(0, 10)
 stringThickINPUT.grid(row = 0, column = 3, sticky = W, padx = 2, pady=5)
 
 Label(VariableHolder, text="Stringer Horizontal Length (mm)", bg="white", font = 2).grid(row = 1, column = 2, sticky = W, padx = 2, pady=5)
 stringHINPUT = Entry(VariableHolder, bd=3, font=2)
-stringHINPUT.insert(0, 0.002)
+stringHINPUT.insert(0, 40)
 stringHINPUT.grid(row = 1, column = 3, sticky = W, padx = 2, pady=5)
 
 Label(VariableHolder, text="Stringer Vertical Length (mm)", bg="white", font = 2).grid(row = 2, column = 2, sticky = W, padx = 2, pady=5)
 stringVINPUT = Entry(VariableHolder, bd=3, font=2)
-stringVINPUT.insert(0, 0.002)
+stringVINPUT.insert(0, 40)
 stringVINPUT.grid(row = 2, column = 3, sticky = W, padx = 2, pady=5)
+
+Label(VariableHolder, text="Stringer Positioning", bg="white", font = 2).grid(row = 7, column = 0, sticky = W, padx = 2, pady=5)
+stringPosINPUT = Entry(VariableHolder, bd=3, font=2, width=70)
+stringPosINPUT.insert(0, "0, 0.6, 1.3, 2.0, 2.8, 3.6, 4.5, 5.5, 6.7, 8.0, 9.5, 11, 13.75")
+stringPosINPUT.grid(row = 7, column = 1, sticky = W, padx = 2, pady=5, columnspan=3)
 
 """
 Label(VariableHolder, text="Stringer Thickness (mm)", bg="white", font = 2).grid(row = 2, column = 2, sticky = W, padx = 2)
@@ -401,28 +427,36 @@ stringThickINPUT.grid(row = 2, column = 3, sticky = W, padx = 2)
 """
 
 TorqueDeform = Text(VariableHolder, height = 0.5, width = 10, bg = "light cyan", font =2 , padx=10, pady=5)
-Label(VariableHolder, text="Torque in Degrees", bg="white", font=2).grid(row = 7, column = 0, sticky = W, padx = 0)
-TorqueDeform.grid(row=7, column=1, sticky=W)
+Label(VariableHolder, text="Torque in Degrees", bg="white", font=2).grid(row = 10, column = 0, sticky = W, padx = 0)
+TorqueDeform.grid(row=10, column=1, sticky=W)
 
 DeflectionDeform = Text(VariableHolder, height = 0.5, width = 10, bg = "light cyan", font =2 , padx=10, pady=5)
-Label(VariableHolder, text="Downwards Deflection", bg="white", font=2).grid(row = 8, column = 0, sticky = W, padx = 0)
-DeflectionDeform.grid(row=8, column=1, sticky=W)
+Label(VariableHolder, text="Downwards Deflection", bg="white", font=2).grid(row = 11, column = 0, sticky = W, padx = 0)
+DeflectionDeform.grid(row=11, column=1, sticky=W)
 
 fig, ax = plt.subplots()
-TomsCanvas = FigureCanvasTkAgg(fig, master=GraphsHolder)
-TomsCanvas.get_tk_widget().grid(row = 2, column = 0, sticky = W, padx = 2)
+GraphCanvas1 = FigureCanvasTkAgg(fig, master=GraphsHolder)
+GraphCanvas1.get_tk_widget().grid(row = 2, column = 0, sticky = W, padx = 2)
 
-fig2, ax2 = plt.subplots()
-TomsCanvas2 = FigureCanvasTkAgg(fig2, master=GraphsHolder)
-TomsCanvas2.get_tk_widget().grid(row = 3, column = 0, sticky = W, padx = 2)
+fig, ax2 = plt.subplots()
+GraphCanvas2 = FigureCanvasTkAgg(fig, master=GraphsHolder)
+GraphCanvas2.get_tk_widget().grid(row = 2, column = 1, sticky = W, padx = 2)
 
 fig, ax3 = plt.subplots()
-ShearCanvas = FigureCanvasTkAgg(fig, master=GraphsHolder)
-ShearCanvas.get_tk_widget().grid(row = 2, column = 1, sticky = W, padx = 2)
+GraphCanvas3 = FigureCanvasTkAgg(fig, master=GraphsHolder)
+GraphCanvas3.get_tk_widget().grid(row = 2, column = 2, sticky = W, padx = 2)
 
-fig2, ax4 = plt.subplots()
-DeformCanvas = FigureCanvasTkAgg(fig2, master=GraphsHolder)
-DeformCanvas.get_tk_widget().grid(row = 3, column = 1, sticky = W, padx = 2)
+fig, ax4 = plt.subplots()
+GraphCanvas4 = FigureCanvasTkAgg(fig, master=GraphsHolder)
+GraphCanvas4.get_tk_widget().grid(row = 3, column = 0, sticky = W, padx = 2)
+
+fig, ax5 = plt.subplots()
+GraphCanvas5 = FigureCanvasTkAgg(fig, master=GraphsHolder)
+GraphCanvas5.get_tk_widget().grid(row = 3, column = 1, sticky = W, padx = 2)
+
+fig, ax6 = plt.subplots()
+GraphCanvas6 = FigureCanvasTkAgg(fig, master=GraphsHolder)
+GraphCanvas6.get_tk_widget().grid(row = 3, column = 2, sticky = W, padx = 2)
 
 C.grid(row = 0, column = 0, sticky = W, padx = 2)
 VariableHolder.grid(row = 0, column = 0, sticky = W, pady=5)
