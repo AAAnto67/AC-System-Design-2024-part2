@@ -74,7 +74,7 @@ def BigBuckling(AppliedCompressionList,yList,InterRibDistance,h,b,t):
     xtaballowed = AllowedCompressionList[1]
     ytaballowed = AllowedCompressionList[2]
     xtabapplied = yList
-    ytabapplied = AppliedCompressionList[1]
+    ytabapplied = AppliedCompressionList
     xtabMargin = yList
     ytabMargin = MarginList
 
