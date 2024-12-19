@@ -37,16 +37,12 @@ def moment(weight, V, rho, AoA, loadfactor):
     
         for j in range(n, len(y_list)):
             arm = y_list[j] - y
-            moment += arm * V_list[j] * dy
+            moment += - arm * V_list[j] * dy
     
         if y < y_engine:
-            moment += loadfactor * (engine_weight * (y_engine - y) - trust * r_engine * np.sin(engine_angle))
+            moment += - loadfactor * (engine_weight * (y_engine - y) - trust * r_engine * np.sin(engine_angle))
     
         M_list.append(moment)
     plt.plot(y_list, M_list)
     plt.show()
     return(M_list, V_list, halfspan, y_list, dy)
-
-
-
-
