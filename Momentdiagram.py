@@ -43,6 +43,6 @@ def moment(weight, V, rho, AoA, loadfactor):
             moment += - loadfactor * (engine_weight * (y_engine - y) - trust * r_engine * np.sin(engine_angle))
     
         M_list.append(moment)
-    plt.plot(y_list, M_list)
-    plt.show()
+    # plt.plot(y_list, M_list)
+    # plt.show()
     return(M_list, V_list, halfspan, y_list, dy)
