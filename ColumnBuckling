@@ -68,7 +68,8 @@ def BigBuckling(AppliedCompressionList,yList,InterRibDistance,h,b,t):
         y = yList[i]
         MaxAllowed = GetMaxStress(InterRibDistance,AllowedCompressionList[0],y)
         Applied = AppliedCompressionList[i]
-        Margin = MaxAllowed / Applied
+        if Applied != 0: Margin = MaxAllowed / Applied
+        else: Margin = 0
         MarginList.append(Margin)
 
     xtaballowed = AllowedCompressionList[1]
