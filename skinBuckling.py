@@ -69,4 +69,4 @@ compressiveStressesList = [np.float64(377797688.49549407), np.float64(377897010.
 panelThickness = 0.010  # Panel thickness [m]
 span = 13.75 # span [m]
 
-print(marginOfSafetyList(stringerPositions, ribPositions, compressiveStressesList, panelThickness))
+print(marginOfSafetyList(stringerPositions, ribPositions, compressiveStressesList, panelThickness, span))
