@@ -1,6 +1,7 @@
 import math as m
 import matplotlib.pyplot as plt
 import scipy as sp
+import numpy as np
 from scipy import interpolate
 
 # List x (aspect_ratio)
@@ -31,28 +32,39 @@ K_s = sp.interpolate.interp1d(aspectlist, k_slist, kind='cubic', fill_value="ext
 
 #WARNING!! THESE ARE GUESSED!!
 YoungModulus = 7e10
-PoissonRatio = 0.6
+PoissonRatio = 0.33
+SafetyFactor = 1.5
+Kv = 1000
 
 
-def WebBuckle(RibPositionsList, halfwingspan, rootchord, taperratio, PlateThickness, PlateHeight):
+def WebBuckle(RibPositionsList, halfwingspan, rootchord, taperratio, PlateThickness, Shear, FrontSparHeight, FrontSparThick, BackSparHeight, BackSparThick):
 
     #First, to get the Ks along the wingspan! This requires the aspect ratio
 
     YList = [halfwingspan*i/141 for i in range(141)]
-    KsList = []
+    TauCritList = []
     count = 0
     for i in range(141):
         while YList[i] >= RibPositionsList[count]:
             count += 1
 
         sheetlength = (RibPositionsList[count] - RibPositionsList[count - 1])
-        sheatheight = (rootchord - (1 - taperratio) * rootchord * RibPositionsList[count]/halfwingspan)
+        sheetheight = (rootchord - (1 - taperratio) * rootchord * RibPositionsList[count]/halfwingspan)
+        AspectRatio = sheetlength / sheetheight
+        if AspectRatio <= 0.99999:
+            print("ASPECT RATIO IS SMALLER THAN 1")
+            break
+        Ks = K_s(AspectRatio)
+        TauCrit = (3.14159**2 * Ks * YoungModulus )/ (12*(1 - PoissonRatio**2)) * (PlateThickness)
+        TauCritList.append(TauCrit)
+    
+        TauAve = [1.5 * Kv * Shear[i]/((FrontSparHeight*FrontSparThick + BackSparHeight*BackSparThick)*(1 - (1 - taperratio)*i/141)**2) for i in range(141)]
 
-        KsList.append(K_s(sheetlength / sheatheight))
+        Margin = [TauCritList[i] / TauAve[i] for i in range(len(TauCritList))]
+    plt.plot(YList, Margin)
+    plt.show()
     
 
-def criticalshear(aspectratio):
-    tau_cr = m.pi()**2 * K_s(aspectratio) * YoungModulus / (12*(1 - PoissonRatio**2)) * (thickness)
 
 
 
@@ -63,7 +75,6 @@ def criticalshear(aspectratio):
     #AverageShear = ()
     #ShearCrit = (m.pi**2 * Ks * YoungModulus)/12*(1 - PoissonRatio**2) * (PlateThickness/PlateHeight)**2
 
-DummyRibPos = [0, 2, 5, 7, 9, 13.75]
-WebBuckle(DummyRibPos, 13.75, 4.2, 0.3, 0, 0)
-DummyRibPos = [0, 2, 5, 7, 9, 13.75]
-WebBuckle(DummyRibPos, 13.75, 4.2, 0.3, 0, 0)
+DummyRibPos = [0, 4, 8, 13.75]
+shear = [np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-545280.8917960676), np.float64(-540860.5177951403), np.float64(-535919.8682577291), np.float64(-530528.5361930899), np.float64(-524772.7374889603), np.float64(-518750.05157008604), np.float64(-512550.15416973946), np.float64(-506250.33450961474), np.float64(-499915.7379402768), np.float64(-493599.60858160973), np.float64(-487343.53196326585), np.float64(-481177.6776651143), np.float64(-475121.0419576897), np.float64(-469181.6904426411), np.float64(-463357.0006931805), np.float64(-457633.90489453165), np.float64(-451990.29492487997), np.float64(-446403.58963728294), np.float64(-440854.4035945278), np.float64(-435326.4964873489), np.float64(-429806.70655910886), np.float64(-424284.8840304791), np.float64(-418753.8245241213), np.float64(-413209.20248936786), np.float64(-407649.5046269031), np.float64(-402075.96331344405), np.float64(-396492.4900264215), np.float64(-390905.3166293086), np.float64(-385320.79041471484), np.float64(-379744.4128877071), np.float64(-374180.8538270828), np.float64(-368633.9699397293), np.float64(-363106.8235149841), np.float64(-357601.7010789942), np.float64(-352120.13204907626), np.float64(-363127.0303880763), np.float64(-357694.22125872946), np.float64(-352285.1977103524), np.float64(-346898.82430083014), np.float64(-341534.0617282169), np.float64(-336190.0867951195), np.float64(-330866.2872198939), np.float64(-325562.25644784165), np.float64(-320277.7884624068), np.float64(-315012.8725963724), np.float64(-309767.6883430573), np.float64(-304542.6001675126), np.float64(-299338.1523177184), np.float64(-294155.05238247593), np.float64(-288994.03431731457), np.float64(-283855.77171192894), np.float64(-278740.8777579588), np.float64(-273649.90672530077), np.float64(-268583.3554384204), np.float64(-263541.6647526638), np.float64(-258525.22103056998), np.float64(-253534.35761818223), np.float64(-248569.35632136033), np.float64(-243630.45221970958), np.float64(-238717.8722650991), np.float64(-233831.85873992817), np.float64(-228972.66910406714), np.float64(-224140.57547148672), np.float64(-219335.8640868869), np.float64(-214558.83480232614), np.float64(-209809.80055385045), np.float64(-205089.08683812246), np.float64(-200397.03117911422), np.float64(-195733.9794321268), np.float64(-191100.27772661115), np.float64(-186496.27117903702), np.float64(-181922.30377176095), np.float64(-177378.71823189454), np.float64(-172865.8559101725), np.float64(-168384.05665982087), np.float64(-163933.6587154251), np.float64(-159514.99859311112), np.float64(-155128.41492466794), np.float64(-150774.25669803683), np.float64(-146452.88378640625), np.float64(-142164.66633248163), np.float64(-137909.98413275502), np.float64(-133689.22602177478), np.float64(-129502.7892564154), np.float64(-125351.07890014713), np.float64(-121234.50883559478), np.float64(-117153.51107155094), np.float64(-113108.53845158132), np.float64(-109100.06343928904), np.float64(-105128.57689575158), np.float64(-101194.58685695782), np.float64(-97298.61731124499), np.float64(-93441.2070139604), np.float64(-89622.9208815364), np.float64(-85844.37889693894), np.float64(-82106.25761570914), np.float64(-78409.28690197902), np.float64(-74754.24666448732), np.float64(-71141.96359259525), np.float64(-67573.30796991994), np.float64(-64049.208706612946), np.float64(-60570.69063376689), np.float64(-57138.87418898149), np.float64(-53754.96913739785), np.float64(-50420.268292732806), np.float64(-47136.14123831328), np.float64(-43904.084629986566), np.float64(-40725.9498180215), np.float64(-37603.98392256178), np.float64(-34540.80594311205), np.float64(-31539.382867607783), np.float64(-28603.00794263792), np.float64(-25735.311684230062), np.float64(-22940.26427760021), np.float64(-20222.149027283693), np.float64(-17585.534947757656), np.float64(-15036.02870074973), np.float64(-12583.133572213992), np.float64(-10240.700994158202), np.float64(-8026.614795566912), np.float64(-5960.1073774274355), np.float64(-4057.905230682666), np.float64(-2337.7174086432797), np.float64(-888.0750140061855), np.float64(74.22706081528386), np.float64(48.68486247806189), np.float64(23.946795971536186)]
+WebBuckle(DummyRibPos, 13.75, 4.2, 0.3, 0.01, shear, 1.5, 0.01, 1.6, 0.01)
