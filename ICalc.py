@@ -229,8 +229,8 @@ def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumB
                 DecipherPositionsString = []
         if DecipherPositionsString != []: TomsPositionsList.append(float("".join(DecipherPositionsString)))
 
-        ShearListTop = ShearForceDiagram.shear_diagram(LoadCases.SpeedFactorsList[56], LoadCases.DensitiesList[56], LoadCases.AoAList[56], LoadCases.LoadFactorsList[56])[1] #Top refers to the conditions of maximum upwards wing loading
         XList = [HalfWingSpan * i/141 for i in range(141)]
+        ShearListTop = ShearForceDiagram.shear_diagram(LoadCases.SpeedFactorsList[56], LoadCases.DensitiesList[56], LoadCases.AoAList[56], LoadCases.LoadFactorsList[56])[1] #Top refers to the conditions of maximum upwards wing loading
         ShearListBot = ShearForceDiagram.shear_diagram(LoadCases.SpeedFactorsList[27], LoadCases.DensitiesList[27], LoadCases.AoAList[27], LoadCases.LoadFactorsList[27])[1] #Bot refers to the conditions of minimum wing loading
         MomentListTop = Momentdiagram.moment(LoadCases.SpeedFactorsList[56], LoadCases.DensitiesList[56], LoadCases.AoAList[56], LoadCases.LoadFactorsList[56])[0]
         MomentListBot = Momentdiagram.moment(LoadCases.SpeedFactorsList[27], LoadCases.DensitiesList[27], LoadCases.AoAList[27], LoadCases.LoadFactorsList[27])[0]
@@ -246,14 +246,16 @@ def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumB
         else: PleunsFinalFunList = PleunsFunnyBotList
         MaxStressTop = MaximumStressLocation.CalcMaxStress(IList, PleunsFinalFunList[0], MomentListTop)
         MaxStressBot = MaximumStressLocation.CalcMaxStress(IList, PleunsFinalFunList[0], MomentListBot)
-
-        print(PleunsFinalFunList[0])
+        MaxStressMarginTop = MaximumStressLocation.MaxStressMargin(HalfWingSpan, IList, PleunsFinalFunList[0], MomentListTop)[1]
+        MaxStressMarginBot = MaximumStressLocation.MaxStressMargin(HalfWingSpan, IList, PleunsFinalFunList[0], MomentListBot)[1]
 
         MaxCompressiveStressTop = MaximumStressLocation.CalcMaxStress(IList, PleunsFunnyTopList[0], MomentListTop)
         MaxCompressiveStressBot = MaximumStressLocation.CalcMaxStress(IList, PleunsFunnyBotList[0], MomentListBot)#These are compressive stress only, for TOMM
 
         if max([abs(MaxCompressiveStressTop[i]) for i in range(len(MaxCompressiveStressTop))]) > max([abs(MaxCompressiveStressBot[i]) for i in range(len(MaxCompressiveStressBot))]): FinalMaxCompressiveStress = MaxCompressiveStressTop
         else: FinalMaxCompressiveStress = MaxCompressiveStressBot
+
+        #print(TomsPositionsList)
 
         TomsMassiveList = ColumnBuckling.BigBuckling(FinalMaxCompressiveStress, XList, TomsPositionsList, StringerHeight, StringerLength, StringerThicc) #This list contains the six mini lists from Tom's script
 
@@ -264,6 +266,9 @@ def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumB
         #plotting moment diagram
         ax2.plot(XList, [MaxStressTop[i]/10e6 for i in range(len(MaxStressTop))])
         ax2.plot(XList, [MaxStressBot[i]/10e6 for i in range(len(MaxStressBot))])
+
+        ax3.plot(XList, MaxStressMarginTop)
+        ax3.plot(XList, MaxStressMarginBot)
 
         #plotting I
 
@@ -281,11 +286,11 @@ def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumB
         ax2.set_xlabel("Spanwise distance from root chord [m]")
         ax2.set_ylabel("Max Stress [MPa]")
 
-        ax3.set_title("???????????")
+        ax3.set_title("Margin for Maximum Compressive Stress [4]")
         ax3.set_xlabel("Spanwise distance from root chord [m]")
-        ax3.set_ylabel("I [m^4]")
+        ax3.set_ylabel("Margin")
 
-        ax4.set_title("Maximum Allowable Stress [Pa]")
+        ax4.set_title("Compressive Strength Failure [Pa]")
         ax4.set_xlabel("Spanwise distance from root chord [m]")
         ax4.set_ylabel("stress [Pa]")
 
@@ -294,7 +299,7 @@ def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumB
         ax5.set_ylabel("stress [Pa]")
         ax5.legend()
 
-        ax6.set_title("Margin")
+        ax6.set_title("Margin [3]")
         ax6.set_xlabel("Spanwise distance from root chord [m]")
         ax6.set_ylabel("Margin")
         ax6.set_ylim((0, 1))
