@@ -25,27 +25,26 @@ y = [
     9.48267855904014, 9.48267855904014, 9.488686361926879, 9.488686361926879
 ]
 
-
 #WARNING!! THESE ARE GUESSED!!
 YoungModulus = 7e10
-Ks = 0
 PoissonRatio = 0.6
+
+def FindKs(AR):
 
 def WebBuckle(RibPositionsList, halfwingspan, rootchord, taperratio, PlateThickness, PlateHeight):
 
     #First, to get the Ks along the wingspan! This requires the aspect ratio
 
-    XList = [halfwingspan*i/141 for i in range(141)]
-    print(len(XList))
-    ARList = []
+    YList = [halfwingspan*i/141 for i in range(141)]
+    KsList = []
     count = 0
     for i in range(141):
         while XList[i] >= RibPositionsList[count]:
-            print(count, XList[i], RibPositionsList[count])
             count += 1
-        ARList.append((RibPositionsList[count] - RibPositionsList[count - 1]) / (rootchord - (1 - taperratio) * rootchord * RibPositionsList[count]/halfwingspan))
-        
-    plt.plot(XList, ARList)
+        KsList.append(FindKs((RibPositionsList[count] - RibPositionsList[count - 1]) / (rootchord - (1 - taperratio) * rootchord * RibPositionsList[count]/halfwingspan)))
+    
+
+    plt.plot(YList, KsList)
     plt.show()
 
 
@@ -56,5 +55,7 @@ def WebBuckle(RibPositionsList, halfwingspan, rootchord, taperratio, PlateThickn
     #AverageShear = ()
     #ShearCrit = (m.pi**2 * Ks * YoungModulus)/12*(1 - PoissonRatio**2) * (PlateThickness/PlateHeight)**2
 
+DummyRibPos = [0, 2, 5, 7, 9, 13.75]
+WebBuckle(DummyRibPos, 13.75, 4.2, 0.3, 0, 0)
 DummyRibPos = [0, 2, 5, 7, 9, 13.75]
 WebBuckle(DummyRibPos, 13.75, 4.2, 0.3, 0, 0)
