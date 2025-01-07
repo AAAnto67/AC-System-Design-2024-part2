@@ -1,8 +1,10 @@
 import math as m
 import matplotlib.pyplot as plt
+import scipy as sp
+from scipy import interpolate
 
 # List x (aspect_ratio)
-x = [
+aspectlist = [
     1.0229264102518605, 1.0386556077797888, 1.0622073569619204, 1.0975358753544742,
     1.138751883732883, 1.2079354824376531, 1.2918400426554513, 1.3768400642754188,
     1.4720700582382293, 1.5555988783262507, 1.6512784185157576, 1.7525712478583189,
@@ -14,7 +16,7 @@ x = [
 ]
 
 # List y (k_s)
-y = [
+k_slist = [
     14.963701469294161, 14.583976423378719, 14.095611834682499, 13.635304046035937,
     13.247796652097872, 12.811060692364709, 12.38084326494397, 12.024958192300812,
     11.702269391287203, 11.45696819328667, 11.189617998123218, 10.870495174770788,
@@ -25,11 +27,12 @@ y = [
     9.48267855904014, 9.48267855904014, 9.488686361926879, 9.488686361926879
 ]
 
+K_s = sp.interpolate.interp1d(aspectlist, k_slist, kind='cubic', fill_value="extrapolate")
+
 #WARNING!! THESE ARE GUESSED!!
 YoungModulus = 7e10
 PoissonRatio = 0.6
 
-def FindKs(AR):
 
 def WebBuckle(RibPositionsList, halfwingspan, rootchord, taperratio, PlateThickness, PlateHeight):
 
@@ -39,13 +42,18 @@ def WebBuckle(RibPositionsList, halfwingspan, rootchord, taperratio, PlateThickn
     KsList = []
     count = 0
     for i in range(141):
-        while XList[i] >= RibPositionsList[count]:
+        while YList[i] >= RibPositionsList[count]:
             count += 1
-        KsList.append(FindKs((RibPositionsList[count] - RibPositionsList[count - 1]) / (rootchord - (1 - taperratio) * rootchord * RibPositionsList[count]/halfwingspan)))
+
+        sheetlength = (RibPositionsList[count] - RibPositionsList[count - 1])
+        sheatheight = (rootchord - (1 - taperratio) * rootchord * RibPositionsList[count]/halfwingspan)
+
+        KsList.append(K_s(sheetlength / sheatheight))
     
 
-    plt.plot(YList, KsList)
-    plt.show()
+def criticalshear(aspectratio):
+    tau_cr = m.pi()**2 * K_s(aspectratio) * YoungModulus / (12*(1 - PoissonRatio**2)) * (thickness)
+
 
 
     #The Wing Loading is variable, so the shear force experienced at each point changes aswell!
