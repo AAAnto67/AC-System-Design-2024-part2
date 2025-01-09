@@ -1,7 +1,8 @@
 from XFLR5 import *
 from matplotlib import pyplot as plt
 
-def moment(weight, V, rho, AoA, loadfactor):
+def moment(V, rho, AoA, loadfactor):
+    weight = 6748 #WEIGHT OF THE WING
     halfspan = 14
     dy = 0.1
     engine_weight = 1678.3 * 9.81
@@ -9,7 +10,7 @@ def moment(weight, V, rho, AoA, loadfactor):
     y_engine = 4.8
     trust = 78500
     r_engine = 1.7
-    engine_angle = 30
+    engine_angle = 30   
     volume = 12.47
     density = weight / volume
 
@@ -24,8 +25,10 @@ def moment(weight, V, rho, AoA, loadfactor):
     while y <= halfspan:
         segment_lift = 0.5 * rho * V**2 * c(y) * cl(AoA, y)
         segment_weight = area(y) * density
-    
-        V_list.append(-loadfactor * (segment_lift - segment_weight)) 
+        if y >= 1.4:
+            V_list.append(loadfactor * (segment_lift - segment_weight))
+        else:
+            V_list.append(0)
         y_list.append(y)   
         y += dy
         
@@ -37,12 +40,15 @@ def moment(weight, V, rho, AoA, loadfactor):
     
         for j in range(n, len(y_list)):
             arm = y_list[j] - y
-            moment += - arm * V_list[j] * dy
+            moment += arm * V_list[j] * dy
     
         if y < y_engine:
-            moment += - loadfactor * (engine_weight * (y_engine - y) - trust * r_engine * np.sin(engine_angle))
+            moment += loadfactor * (engine_weight * (y_engine - y) - trust * r_engine * np.sin(engine_angle))
     
         M_list.append(moment)
-    # plt.plot(y_list, M_list)
-    # plt.show()
+        
     return(M_list, V_list, halfspan, y_list, dy)
+    
+        
+    #plt.plot(y_list, V_list)
+    #plt.show()
