@@ -4,13 +4,14 @@ import math as m
 import StiffnessCalculations
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import random
 import Displacement
 import LoadCases
 import ShearForceDiagram
 import MaximumStressLocation
 import Momentdiagram
 import ColumnBuckling
+import skinBuckling
+import Buckle
 
 root = Tk()
 root.config(bg="gray")
@@ -19,6 +20,7 @@ ThrustToWeight = 0.42
 
 Offset = 50
 RootChord = 4.26
+TaperRatio = 0.316
 HalfWingSpan = StiffnessCalculations.span/2
 ScalingFactor = 2000
 CanvasDimensions = [2200, 400]
@@ -98,22 +100,27 @@ def CalcString(StringX, ListOfSecondCoord, Angle, Stringheight):
     #C.create_line(ScalingFactor*(StringX + ListOfSecondCoord[0][0])/RootChord + Offset, CanvasDimensions[1], ScalingFactor*(StringX + ListOfSecondCoord[0][0])/RootChord + Offset, -ScalingFactor*(StringY)/RootChord + CanvasDimensions[1]*0.5)
     return(StringY)
 
-def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumBot, StringArea, debug, StringerThicc, StringerLength, StringerHeight, TomPositions):
+def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumBot, StringArea, debug, StringerThicc, StringerLength, StringerHeight, RibPositions):
+    StringArea = StringerThicc * StringerLength + StringerThicc * (StringerHeight - StringerThicc)
+    global StringerPositionsTop, StringerPositionsBot, GlobalHThickness, GlobalVThickness
     HThickness = HThickness/1000
     VThickness = VThickness/1000
     FrontSparTop = FinalAirfoilPoints[1][FindClosest(FinalAirfoilPoints[0], FrontSparX/RootChord)]*RootChord
     FrontSparBot = -FinalAirfoilPoints[2][FindClosest(FinalAirfoilPoints[0], FrontSparX/RootChord)]*RootChord
     BackSparTop = FinalAirfoilPoints[1][FindClosest(FinalAirfoilPoints[0], BackSparX/RootChord)]*RootChord
     BackSparBot = -FinalAirfoilPoints[2][FindClosest(FinalAirfoilPoints[0], BackSparX/RootChord)]*RootChord
+    GlobalHThickness = HThickness
+    GlobalVThickness = VThickness
 
     #Calculating I
     ListOfCoord = [FrontSparX, FrontSparTop], [BackSparX, BackSparTop], [BackSparX, -BackSparBot], [FrontSparX, -FrontSparBot]
     TopAngle = m.atan((ListOfCoord[1][1] - ListOfCoord[0][1])/(ListOfCoord[1][0] - ListOfCoord[0][0]))
     BotAngle = -m.atan((ListOfCoord[3][1] - ListOfCoord[2][1])/(ListOfCoord[1][0] - ListOfCoord[0][0]))
     ListOfSecondCoord = [FrontSparX + HThickness, FrontSparTop - VThickness*m.cos(abs(TopAngle))], [BackSparX - HThickness, BackSparTop - VThickness*m.cos(abs(TopAngle))], [BackSparX - HThickness, -BackSparBot + VThickness*m.cos(abs(BotAngle))], [FrontSparX + HThickness, -FrontSparBot + VThickness*m.cos(abs(BotAngle))]
+    
     StringerPositionsTop = [CalcString((ListOfSecondCoord[1][0] - ListOfSecondCoord[0][0])/(StringNumTop - 1)*i, ListOfSecondCoord, TopAngle, ListOfSecondCoord[0][1]) for i in range(StringNumTop)], [FrontSparX + (BackSparX - FrontSparX) * i/(StringNumTop - 1) for i in range(StringNumTop)] #1st list is the Y pos of each stringer, 2nd list is the X pos of each stringer (FOR THE TOP ONES)
     StringerPositionsBot = [CalcString((ListOfSecondCoord[1][0] - ListOfSecondCoord[0][0])/(StringNumBot - 1)*i, ListOfSecondCoord, BotAngle, ListOfSecondCoord[3][1]) for i in range(StringNumBot)], [FrontSparX + (BackSparX - FrontSparX) * i/(StringNumBot - 1) for i in range(StringNumBot)] #same thing as the list before but for the bottom stringers
-    
+
     FinalYCentroid = CalcIndividualI(ListOfCoord, StringerPositionsTop, StringerPositionsBot, StringArea, StringNumTop, StringNumBot)[1]
     FinalXCentroid = CalcIndividualI(ListOfCoord, StringerPositionsTop, StringerPositionsBot, StringArea, StringNumTop, StringNumBot)[2]
 
@@ -200,109 +207,142 @@ def Main(FrontSparX, BackSparX, HThickness, VThickness, StringNumTop, StringNumB
         print(BendCrit, LargestBending)
 
         ax.set_title("Rate of Angular Deformation")
-        ax.set_xlabel("distance from root chord")
+        ax.set_xlabel("distance from root chord [m]")
         #ax.set_ylabel("ooo")
 
         ax2.set_title("Twist Angle")
-        ax2.set_xlabel("distance from root chord")
-        ax2.set_ylabel("Angle (deg)")
+        ax2.set_xlabel("distance from root chord [m]")
+        ax2.set_ylabel("Angle [deg]")
 
         ax3.set_title("Wing Loading")
-        ax3.set_xlabel("distance from root chord")
+        ax3.set_xlabel("distance from root chord [m]")
         #ax3.set_ylabel("Wing Loading (N)")
 
         ax4.set_title("Vertical Deflection")
-        ax4.set_xlabel("distance from root chord")
-        ax4.set_ylabel("Deflection (m)")
+        ax4.set_xlabel("distance from root chord [m]")
+        ax4.set_ylabel("Deflection [m]")
     
 
     if debug == 2:
-        TomsPositionsList = [] #list that will allow us
+        RibPositionsMainList = [] #list that will allow us
         DecipherPositionsString = []
         #Deciphering the TomsPositions variable
-        for i in range(len(TomPositions)):
+        for i in range(len(RibPositions)):
 
-            if TomPositions[i].isnumeric() or TomPositions[i] == ".":
-                DecipherPositionsString.append(TomPositions[i])
+            if RibPositions[i].isnumeric() or RibPositions[i] == ".":
+                DecipherPositionsString.append(RibPositions[i])
             elif DecipherPositionsString != []:
-                TomsPositionsList.append(float("".join(DecipherPositionsString)))
+                RibPositionsMainList.append(float("".join(DecipherPositionsString)))
                 DecipherPositionsString = []
-        if DecipherPositionsString != []: TomsPositionsList.append(float("".join(DecipherPositionsString)))
+        if DecipherPositionsString != []: RibPositionsMainList.append(float("".join(DecipherPositionsString)))
 
         XList = [HalfWingSpan * i/141 for i in range(141)]
-        ShearListTop = ShearForceDiagram.shear_diagram(LoadCases.SpeedFactorsList[56], LoadCases.DensitiesList[56], LoadCases.AoAList[56], LoadCases.LoadFactorsList[56])[1] #Top refers to the conditions of maximum upwards wing loading
-        ShearListBot = ShearForceDiagram.shear_diagram(LoadCases.SpeedFactorsList[27], LoadCases.DensitiesList[27], LoadCases.AoAList[27], LoadCases.LoadFactorsList[27])[1] #Bot refers to the conditions of minimum wing loading
+        ShearListPos = ShearForceDiagram.shear_diagram(LoadCases.SpeedFactorsList[56], LoadCases.DensitiesList[56], LoadCases.AoAList[56], LoadCases.LoadFactorsList[56])[1] #Top refers to the conditions of maximum upwards wing loading
+        ShearListNeg = ShearForceDiagram.shear_diagram(LoadCases.SpeedFactorsList[27], LoadCases.DensitiesList[27], LoadCases.AoAList[27], LoadCases.LoadFactorsList[27])[1] #Bot refers to the conditions of minimum wing loading
         MomentListTop = Momentdiagram.moment(LoadCases.SpeedFactorsList[56], LoadCases.DensitiesList[56], LoadCases.AoAList[56], LoadCases.LoadFactorsList[56])[0]
         MomentListBot = Momentdiagram.moment(LoadCases.SpeedFactorsList[27], LoadCases.DensitiesList[27], LoadCases.AoAList[27], LoadCases.LoadFactorsList[27])[0]
         ListOfMaxStressCandidatesTop = [(abs(ListOfCoord[i][1]) - abs(FinalYCentroid)) for i in range(2)], [(ListOfCoord[0][1] - ListOfCoord[3][1]), (ListOfCoord[1][1] - ListOfCoord[2][1])] #1st is dist from centroid, 2nd is length of stringer
         ListOfMaxStressCandidatesBot = [(abs(ListOfCoord[i + 2][1]) - abs(FinalYCentroid)) for i in range(2)], [(ListOfCoord[0][1] - ListOfCoord[3][1]), (ListOfCoord[1][1] - ListOfCoord[2][1])]
-        PleunsFunnyTopList = [(ListOfMaxStressCandidatesTop[0][ListOfMaxStressCandidatesTop[0].index(max(ListOfMaxStressCandidatesTop[0]))]) * (1 - (((1 - 0.316) * i/10)/HalfWingSpan)) for i in range(141)], [(ListOfMaxStressCandidatesTop[1][ListOfMaxStressCandidatesTop[0].index(max(ListOfMaxStressCandidatesTop[0]))]) * (1 - (((1 - 0.316) * i/10)/HalfWingSpan)) for i in range(141)]
-        PleunsFunnyBotList = [(ListOfMaxStressCandidatesBot[0][ListOfMaxStressCandidatesBot[0].index(max(ListOfMaxStressCandidatesBot[0]))]) * (1 - (((1 - 0.316) * i/10)/HalfWingSpan)) for i in range(141)], [(ListOfMaxStressCandidatesBot[1][ListOfMaxStressCandidatesBot[0].index(max(ListOfMaxStressCandidatesBot[0]))]) * (1 - (((1 - 0.316) * i/10)/HalfWingSpan)) for i in range(141)] #have fun figuring out wtf this does :)
+        CompStressCriteriaTop = [(ListOfMaxStressCandidatesTop[0][ListOfMaxStressCandidatesTop[0].index(max(ListOfMaxStressCandidatesTop[0]))]) * (1 - (((1 - 0.316) * i/10)/HalfWingSpan)) for i in range(141)], [(ListOfMaxStressCandidatesTop[1][ListOfMaxStressCandidatesTop[0].index(max(ListOfMaxStressCandidatesTop[0]))]) * (1 - (((1 - 0.316) * i/10)/HalfWingSpan)) for i in range(141)]
+        CompStressCriteriaBot = [(ListOfMaxStressCandidatesBot[0][ListOfMaxStressCandidatesBot[0].index(max(ListOfMaxStressCandidatesBot[0]))]) * (1 - (((1 - 0.316) * i/10)/HalfWingSpan)) for i in range(141)], [(ListOfMaxStressCandidatesBot[1][ListOfMaxStressCandidatesBot[0].index(max(ListOfMaxStressCandidatesBot[0]))]) * (1 - (((1 - 0.316) * i/10)/HalfWingSpan)) for i in range(141)] #have fun figuring out wtf this does :)
         #Calculating I and J in terms of spanwise location
         JList = [StiffnessCalculations.TorsionalConstant(FrontSparX, BackSparX, HThickness, VThickness, i/100) for i in range(0, 1401)]
         IList = [FinalI * (1 - (((1 - 0.316) * i/10)/HalfWingSpan))**4 for i in range(141)]
 
-        if PleunsFunnyTopList[0][0] > PleunsFunnyBotList[0][0]: PleunsFinalFunList = PleunsFunnyTopList
-        else: PleunsFinalFunList = PleunsFunnyBotList
-        MaxStressTop = MaximumStressLocation.CalcMaxStress(IList, PleunsFinalFunList[0], MomentListTop)
-        MaxStressBot = MaximumStressLocation.CalcMaxStress(IList, PleunsFinalFunList[0], MomentListBot)
-        MaxStressMarginTop = MaximumStressLocation.MaxStressMargin(HalfWingSpan, IList, PleunsFinalFunList[0], MomentListTop)[1]
-        MaxStressMarginBot = MaximumStressLocation.MaxStressMargin(HalfWingSpan, IList, PleunsFinalFunList[0], MomentListBot)[1]
+        if CompStressCriteriaTop[0][0] > CompStressCriteriaBot[0][0]: FinalCompressiveList = CompStressCriteriaTop
+        else: FinalCompressiveList = CompStressCriteriaBot
+        MaxStressTop = MaximumStressLocation.CalcMaxStress(IList, FinalCompressiveList[0], MomentListTop)
+        MaxStressBot = MaximumStressLocation.CalcMaxStress(IList, FinalCompressiveList[0], MomentListBot)
+        MaxStressMarginTop = MaximumStressLocation.MaxStressMargin(HalfWingSpan, IList, FinalCompressiveList[0], MomentListTop)[1]
+        MaxStressMarginBot = MaximumStressLocation.MaxStressMargin(HalfWingSpan, IList, FinalCompressiveList[0], MomentListBot)[1]
 
-        MaxCompressiveStressTop = MaximumStressLocation.CalcMaxStress(IList, PleunsFunnyTopList[0], MomentListTop)
-        MaxCompressiveStressBot = MaximumStressLocation.CalcMaxStress(IList, PleunsFunnyBotList[0], MomentListBot)#These are compressive stress only, for TOMM
+        MaxCompressiveStressTop = MaximumStressLocation.CalcMaxStress(IList, CompStressCriteriaTop[0], MomentListTop)
+        MaxCompressiveStressBot = MaximumStressLocation.CalcMaxStress(IList, CompStressCriteriaBot[0], MomentListBot)#These are compressive stress only, for TOMM
 
         if max([abs(MaxCompressiveStressTop[i]) for i in range(len(MaxCompressiveStressTop))]) > max([abs(MaxCompressiveStressBot[i]) for i in range(len(MaxCompressiveStressBot))]): FinalMaxCompressiveStress = MaxCompressiveStressTop
         else: FinalMaxCompressiveStress = MaxCompressiveStressBot
 
-        #print(TomsPositionsList)
+        #print(RibPositionsMainList)
 
-        TomsMassiveList = ColumnBuckling.BigBuckling(FinalMaxCompressiveStress, XList, TomsPositionsList, StringerHeight, StringerLength, StringerThicc) #This list contains the six mini lists from Tom's script
+        ColumnBucklingOutputs = ColumnBuckling.BigBuckling(FinalMaxCompressiveStress, XList, RibPositionsMainList, StringerHeight, StringerLength, StringerThicc) #This list contains the six mini lists from Tom's script
+
+
+
+
+        SkinBucklingMarginPos = skinBuckling.marginOfSafetyList(StringerPositionsTop[1], RibPositionsMainList, MaxCompressiveStressTop, VThickness, HalfWingSpan)
+        SkinBucklingMarginNeg = skinBuckling.marginOfSafetyList(StringerPositionsBot[1], RibPositionsMainList, MaxCompressiveStressBot, VThickness, HalfWingSpan)
+
+        MattisMarginPos = Buckle.WebBuckle(RibPositionsMainList, HalfWingSpan, RootChord, TaperRatio, ShearListPos, (FrontSparTop + FrontSparBot), HThickness, (BackSparTop + BackSparBot), HThickness)[0]
+        MattisMarginNeg = Buckle.WebBuckle(RibPositionsMainList, HalfWingSpan, RootChord, TaperRatio, ShearListNeg, (FrontSparTop + FrontSparBot), HThickness, (BackSparTop + BackSparBot), HThickness)[0]
+        #WtfIsWrongWithAR = Buckle.WebBuckle(RibPositionsMainList, HalfWingSpan, RootChord, TaperRatio, 0.01, ShearListNeg, (FrontSparTop - FrontSparBot), HThickness, (BackSparTop - BackSparBot), HThickness)[1]
+
+        print(FrontSparTop + FrontSparBot)
+        print(BackSparTop + BackSparBot)
 
         #plotting shear diagram
-        ax.plot(XList, ShearListTop)
-        ax.plot(XList, ShearListBot)
+        ax.plot(XList, MattisMarginPos)
+        ax.plot(XList, MattisMarginNeg)
+        ax.plot(XList, [1 for i in range(141)], color="red")
+        ax.set_ylim(0, 10)
 
-        #plotting moment diagram
-        ax2.plot(XList, [MaxStressTop[i]/10e6 for i in range(len(MaxStressTop))])
-        ax2.plot(XList, [MaxStressBot[i]/10e6 for i in range(len(MaxStressBot))])
 
-        ax3.plot(XList, MaxStressMarginTop)
-        ax3.plot(XList, MaxStressMarginBot)
+        #plotting moment diagram   
 
-        #plotting I
+        ax2.plot([RootChord*i/len(SkinBucklingMarginPos) for i in range(len(SkinBucklingMarginPos))], [abs(SkinBucklingMarginPos[i]) for i in range(len([RootChord*i/len(SkinBucklingMarginPos) for i in range(len(SkinBucklingMarginPos))]))])
+        ax2.plot([RootChord*i/len(SkinBucklingMarginNeg) for i in range(len(SkinBucklingMarginNeg))], [abs(SkinBucklingMarginNeg[i]) for i in range(len([RootChord*i/len(SkinBucklingMarginNeg) for i in range(len(SkinBucklingMarginNeg))]))])
+        ax2.plot(XList, [1 for i in range(141)], color="red")
 
-    
 
-        ax5.plot(TomsMassiveList[0], [TomsMassiveList[1][i]/10e6 for i in range(len(TomsMassiveList[1]))], label="Maximum Allowable Stress [MPa]")
-        ax5.plot(TomsMassiveList[2], [TomsMassiveList[3][i]/10e6 for i in range(len(TomsMassiveList[3]))], label="Maximum Compressive Stress [MPa]")
-        ax6.plot(TomsMassiveList[4], TomsMassiveList[5])
 
-        ax.set_title("Shear Diagram")
+        ax4.plot(ColumnBucklingOutputs[4], ColumnBucklingOutputs[5])
+        ax4.plot(XList, [1 for i in range(141)], color="red")
+        ax4.set_ylim(0, 3)
+
+
+        ax5.plot(XList, [abs(MaxStressMarginTop[i]) for i in range(141)])
+        ax5.plot(XList, [abs(MaxStressMarginBot[i]) for i in range(141)])
+        ax5.set_ylim((0, 3))
+        ax5.plot(XList, [1 for i in range(141)], color="red")
+        ax5.plot(XList, [-1 for i in range(141)], color="red")
+
+        ax3.plot(ColumnBucklingOutputs[0], [ColumnBucklingOutputs[1][i]/10e6 for i in range(len(ColumnBucklingOutputs[1]))], label="Maximum Allowable Stress [MPa]")
+        ax3.plot(ColumnBucklingOutputs[2], [ColumnBucklingOutputs[3][i]/10e6 for i in range(len(ColumnBucklingOutputs[3]))], label="Maximum Compressive Stress [MPa]")
+
+        """
+        ax6.plot(XList, [MaxStressTop[i]/10e6 for i in range(len(MaxStressTop))])
+        ax6.plot(XList, [MaxStressBot[i]/10e6 for i in range(len(MaxStressBot))])
+
+        ax3.plot(ColumnBucklingOutputs[0], [ColumnBucklingOutputs[1][i]/10e6 for i in range(len(ColumnBucklingOutputs[1]))], label="Maximum Allowable Stress [MPa]")
+        ax3.plot(ColumnBucklingOutputs[2], [ColumnBucklingOutputs[3][i]/10e6 for i in range(len(ColumnBucklingOutputs[3]))], label="Maximum Compressive Stress [MPa]")
+        """
+        #ax3.plot(XList, WtfIsWrongWithAR)
+
+        ax.set_title("Shear Buckling of Spar Webs")
         ax.set_xlabel("Spanwise distance from root chord [m]")
-        ax.set_ylabel("Shear [N]")
+        ax.set_ylabel("Margin")
 
-        ax2.set_title("Maximum Stress")
+        ax2.set_title("Skin Buckling")
         ax2.set_xlabel("Spanwise distance from root chord [m]")
-        ax2.set_ylabel("Max Stress [MPa]")
+        ax2.set_ylabel("Margin")
 
-        ax3.set_title("Margin for Maximum Compressive Stress [4]")
-        ax3.set_xlabel("Spanwise distance from root chord [m]")
-        ax3.set_ylabel("Margin")
-
-        ax4.set_title("Compressive Strength Failure [Pa]")
+        ax4.set_title("Column Buckling of Stringers")
         ax4.set_xlabel("Spanwise distance from root chord [m]")
-        ax4.set_ylabel("stress [Pa]")
+        ax4.set_ylabel("Margin")
 
-        ax5.set_title("Maximum Stresses [Pa]")
+        ax5.set_title("Compressive Stress Failure")
         ax5.set_xlabel("Spanwise distance from root chord [m]")
-        ax5.set_ylabel("stress [Pa]")
-        ax5.legend()
+        ax5.set_ylabel("Margin")
 
-        ax6.set_title("Margin [3]")
+        """
+        ax6.set_title("Maximum Stress")
         ax6.set_xlabel("Spanwise distance from root chord [m]")
-        ax6.set_ylabel("Margin")
-        ax6.set_ylim((0, 1))
+        ax6.set_ylabel("Max Stress [MPa]")
+        """
+        ax3.set_title("Maximum Stresses [Pa]")
+        ax3.set_xlabel("Spanwise distance from root chord [m]")
+        ax3.set_ylabel("stress [Pa]")
+        ax3.legend()        
+        
     
 
     """
@@ -332,6 +372,26 @@ C = Canvas(root, bg="white", height=CanvasDimensions[1], width=CanvasDimensions[
 
 Box = C.create_polygon(0, 0, 0, 0, 0, 0, 0, 0, fill="green", outline="green")
 InsideBox = C.create_polygon(0, 0, 0, 0, 0, 0, 0, 0, fill="white", outline="green")
+
+def RenderStringers(StringerPositionsTop, StringerPositionsBot, ScalingFactor, HThick, VThick):
+    #for i in range(len(StringerPositionsTop[0])):
+    for i in range(len(StringerPositionsTop[0])):
+        x = StringerPositionsTop[1][i]
+        y = -(StringerPositionsTop[0][i] - VThick/2)*ScalingFactor/RootChord + CanvasDimensions[1]*0.5
+        if i == 1: x += HThick*2000
+        if i == len(StringerPositionsTop[0]): x -= HThick*2000
+        x = Offset + StringerPositionsTop[1][i]*ScalingFactor/RootChord
+
+        C.create_oval(x + 10, y - 10, x - 10, y + 10, fill="purple")
+    for i in range(len(StringerPositionsBot[0])):
+        x = StringerPositionsBot[1][i]
+        if i == 0: x -= HThick
+        if i == len(StringerPositionsBot[0]): x += HThick
+        y = -(StringerPositionsBot[0][i] + VThick/2)*ScalingFactor/RootChord + CanvasDimensions[1]*0.5
+        x = Offset + StringerPositionsBot[1][i]*ScalingFactor/RootChord
+
+        C.create_oval(x + 10, y - 10, x - 10, y + 10, fill="purple")
+
 
 #Drawing the airfoil
 for i in range(0, len(FinalAirfoilPoints[0]) - 1):
@@ -368,6 +428,8 @@ DebugButton = Button(VariableHolder, text="Quick Compute", bg="green", font = 2,
 DebugButton.grid(row = 1, column = 5, sticky = W, padx=10)
 BuckleButton = Button(VariableHolder, text="Compute Buckle", bg="yellow", font = 2, command=lambda:Main(float(FrontSparXINPUT.get()), float(BackSparXINPUT.get()), float(HThicknessINPUT.get()), float(VThicknessINPUT.get()), int(stringNumTopINPUT.get()), int(stringNumBotINPUT.get()), float(stringAreaINPUT.get()), 2, float(stringThickINPUT.get())/1000, float(stringHINPUT.get())/1000, float(stringVINPUT.get())/1000, stringPosINPUT.get()))
 BuckleButton.grid(row = 2, column = 5, sticky = W, padx=10)
+RenderButton = Button(VariableHolder, text="RenderStringers", bg="orange", font = 2, command=lambda:RenderStringers(StringerPositionsTop, StringerPositionsBot, ScalingFactor, GlobalHThickness, GlobalVThickness))
+RenderButton.grid(row = 3, column = 5, sticky = W, padx=10)
 
 Label(VariableHolder, text="Front Spar X pos (m)", bg="white", font = 2).grid(row = 0, column = 0, sticky = W, padx = 2, pady=5)
 FrontSparXINPUT = Entry(VariableHolder, bd=3, font=2)
@@ -399,7 +461,7 @@ stringNumBotINPUT = Entry(VariableHolder, bd=3, font=2)
 stringNumBotINPUT.insert(0, 5)
 stringNumBotINPUT.grid(row = 5, column = 1, sticky = W, padx = 2, pady=5)
 
-Label(VariableHolder, text="Stringer Area (m2)", bg="white", font = 2).grid(row = 6, column = 0, sticky = W, padx = 2, pady=5)
+Label(VariableHolder, text="Stringer Area (m2) [DISABLED]", bg="white", font = 2).grid(row = 6, column = 0, sticky = W, padx = 2, pady=5)
 stringAreaINPUT = Entry(VariableHolder, bd=3, font=2)
 stringAreaINPUT.insert(0, 0.002)
 stringAreaINPUT.grid(row = 6, column = 1, sticky = W, padx = 2, pady=5)
@@ -419,9 +481,9 @@ stringVINPUT = Entry(VariableHolder, bd=3, font=2)
 stringVINPUT.insert(0, 40)
 stringVINPUT.grid(row = 2, column = 3, sticky = W, padx = 2, pady=5)
 
-Label(VariableHolder, text="Stringer Positioning", bg="white", font = 2).grid(row = 7, column = 0, sticky = W, padx = 2, pady=5)
+Label(VariableHolder, text="Ribz Positioning", bg="white", font = 2).grid(row = 7, column = 0, sticky = W, padx = 2, pady=5)
 stringPosINPUT = Entry(VariableHolder, bd=3, font=2, width=70)
-stringPosINPUT.insert(0, "0, 0.6, 1.3, 2.0, 2.8, 3.6, 4.5, 5.5, 6.7, 8.0, 9.5, 11, 13.75")
+stringPosINPUT.insert(0, "0, 4, 8, 13.75")
 stringPosINPUT.grid(row = 7, column = 1, sticky = W, padx = 2, pady=5, columnspan=3)
 
 """
