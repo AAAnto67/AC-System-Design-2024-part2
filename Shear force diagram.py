@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 
 def shear_diagram(V, rho, AoA, loadfactor):
     halfspan = 14
-    dy = 0.01
+    dy = 0.1
     engine_weight = 1678.3 * 9.81
     y_engine = 4.8
     volume = 48.96
