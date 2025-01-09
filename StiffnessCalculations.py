@@ -29,14 +29,10 @@ def TorsionalConstant(front_spar_location,rear_spar_location,spar_t,skin_t,y):
     chord = chord_a*y + chord_b
     delta_spar_location = rear_spar_location - front_spar_location
 
-    # FOR WP 4, THIS WAS VARIABLE, BUT FOR WP5, IT HAD TO BE CHANGED BACK TO CONSTANT THICKNESS:
-    # CODE USED FOR WP 4:
-        #spar_thickness = spar_t * chord / root_chord
-        #top_thickness = skin_t * chord / root_chord
-    spar_thickness = spar_t
-    top_thickness = skin_t
+    spar_thickness = spar_t * chord / root_chord
+    top_thickness = skin_t * chord / root_chord
 
-    #the spar height is found using a separate function, and takes from the original airfoil data
+    #the spar height is found using a separate function.
     front_spar_height = af.get_thickness(front_spar_location) * chord
     rear_spar_height = af.get_thickness(rear_spar_location) * chord
     delta_spar_height = af.get_thickness(front_spar_location) - af.get_thickness(rear_spar_location)
@@ -63,17 +59,13 @@ def Torsion(alpha,load_factor,velocity,density,engine_thrust,resolution,centroid
         Lift_T = 0
         Moment_T = 0
 
-        #the chord at the location of the engine
         engine_chord = (chord_a*engine_hor_dist + chord_b)
         
-        #engine contribution due to the thrust
+        #engine contribution to the torsion
         if i <= engine_hor_dist:
-            LocalTorsion += engine_thrust * (engine_y + centroid_y / root_chord * engine_chord) * ma.cos(engine_angle) 
-            #print(engine_thrust * (engine_y + centroid_y / root_chord * engine_chord) * ma.cos(engine_angle) * load_factor)
-
-        #engine contribution due to the weight
+            LocalTorsion += engine_thrust * (engine_y + centroid_y / root_chord * engine_chord) * ma.cos(engine_angle) * load_factor
         if i <= engine_hor_dist:
-            LocalTorsion += -1 * (centroid_x / root_chord - engine_x_ratio) * engine_chord * engine_weight * load_factor
+            LocalTorsion += -1 * (centroid_x / root_chord - engine_x_ratio) * engine_chord * engine_weight
         
         #lift contribution to the torsion
         k = i
@@ -115,19 +107,16 @@ def Torsion(alpha,load_factor,velocity,density,engine_thrust,resolution,centroid
 def deformation(alpha,load_factor,velocity,density,engine_thrust,resolution,front_spar_location,rear_spar_location,spar_thickness,top_thickness,centroid_x,centroid_y):
     G = 28 * 10**9
 
-    #define the torsion distribution
     torsionf = Torsion(alpha,load_factor,velocity,density,engine_thrust,resolution,centroid_x,centroid_y)
     ytab = torsionf[0]
     torsion = torsionf[1]
 
-    #calculate the twist rate at each point of the wing. 
     diffdeformation = []
     for i in range(len(ytab)):
-        diffdeformation.append(torsion[i] / G / TorsionalConstant(front_spar_location,rear_spar_location,spar_thickness,top_thickness,ytab[i]) * 180 / 3.1415)
+        diffdeformation.append(-(torsion[i] / G / TorsionalConstant(front_spar_location,rear_spar_location,spar_thickness,top_thickness,ytab[i]) * 180 / 3.1415))
 
     #print(len(diffdeformation))
 
-    #calculate the total twist at each point of the wing
     totaldeformation = []
     for i in range(len(ytab)):
         localdeformation = 0
@@ -137,11 +126,9 @@ def deformation(alpha,load_factor,velocity,density,engine_thrust,resolution,fron
             j += 1
         totaldeformation.append(localdeformation)
     
-    #the deformation at the end of the wing. 
     tipdeformation = totaldeformation[-1] 
 
     return(diffdeformation,totaldeformation,tipdeformation)
-
 
 
 
